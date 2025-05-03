@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "808128930124",
+    "project_id": "flexibus-33b47",
+    "storage_bucket": "flexibus-33b47.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:808128930124:android:da47b5a947cde36f57afe9",
+        "android_client_info": {
+          "package_name": "com.example.flexibus_passenger"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBoZau4uRa7OOq9rQ-c-rLegIwV4M1d0fo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
