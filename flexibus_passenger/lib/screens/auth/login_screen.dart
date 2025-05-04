@@ -1,7 +1,8 @@
+import 'package:flexibus_passenger/providers/auth_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'home_screen.dart';
+import 'package:provider/provider.dart'; // Import Provider
+import '../dashboard/home_screen.dart';
 import 'register_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -26,33 +27,35 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   void initState() {
     super.initState();
-    // Check if the user is already logged in
-    FirebaseAuth.instance.authStateChanges().listen((User? user) {
-      if (user != null) {
-        // Redirect to HomeScreen if the user is logged in
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => const HomeScreen()),
-        );
-      }
-    });
+    // No need to check auth state here.  Let AuthProvider handle redirects.
   }
 
   void loginUser() async {
     setState(() => isLoading = true);
+    final authProvider = Provider.of<AuthProvider>(context, listen: false); //get the instance of the AuthProvider
+
     try {
-      await FirebaseAuth.instance.signInWithEmailAndPassword(
+      final loginSuccess = await authProvider.login( //use the login method from AuthProvider
         email: emailController.text.trim(),
         password: passwordController.text.trim(),
       );
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const HomeScreen()),
-      );
+
+      if (loginSuccess) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const HomeScreen()),
+        );
+      } else {
+         // Show error message using context from the current screen.
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Login failed. Please check your credentials.')),
+        );
+      }
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Login failed: $e')));
+      // Handle other potential errors (e.g., network issues)
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: ${e.toString()}')),
+      );
     } finally {
       setState(() => isLoading = false);
     }
@@ -67,15 +70,17 @@ class _LoginScreenState extends State<LoginScreen> {
       return;
     }
 
+    final authProvider = Provider.of<AuthProvider>(context, listen: false); //get the instance of the AuthProvider
+
     try {
-      await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
+      await authProvider.resetPassword(email); //use the resetPassword method from AuthProvider
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Password reset email sent to $email')),
       );
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Error: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: ${e.toString()}')),
+      );
     }
   }
 
@@ -188,16 +193,16 @@ class _LoginScreenState extends State<LoginScreen> {
                     child:
                         isLoading
                             ? const CircularProgressIndicator(
-                              color: Colors.white,
-                            )
-                            : Text(
-                              'Login',
-                              style: GoogleFonts.poppins(
                                 color: Colors.white,
-                                fontSize: 18,
-                                fontWeight: FontWeight.w600,
+                              )
+                            : Text(
+                                'Login',
+                                style: GoogleFonts.poppins(
+                                  color: Colors.white,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w600,
+                                ),
                               ),
-                            ),
                   ),
                 ),
               ),
@@ -233,3 +238,4 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 }
+

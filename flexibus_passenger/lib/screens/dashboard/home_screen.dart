@@ -2,9 +2,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cloud_firestore/cloud_firestore.dart'; // Import Firestore
-import 'profile_screen.dart';
-import 'subscription_screen.dart';
-import 'wallet_screen.dart';
+import '../profile/profile_screen.dart';
+import '../subscription/subscription_screen.dart';
+import '../subscription/wallet_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
