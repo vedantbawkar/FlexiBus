@@ -19,7 +19,7 @@ class AuthProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  Future<bool> login({required String email,required String password}) async {
+  Future<bool> login({required String email, required String password}) async {
     try {
       _isLoading = true;
       notifyListeners();
@@ -101,5 +101,4 @@ class AuthProvider with ChangeNotifier {
     // For example, you can call a method from AuthService to send a password reset email
     AuthService.resetPassword(email);
   }
-
 }

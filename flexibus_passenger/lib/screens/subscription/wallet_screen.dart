@@ -1,5 +1,8 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:intl/intl.dart';
 
 class WalletScreen extends StatefulWidget {
   const WalletScreen({super.key});
@@ -15,29 +18,169 @@ class _WalletScreenState extends State<WalletScreen> {
     end: Alignment.centerRight,
   );
 
-  double _currentBalance = 155.75; // Example balance
+  double _currentBalance = 0;
+  List<Map<String, dynamic>> _transactions = [];
 
-  // Dummy transaction data
-  final List<Map<String, dynamic>> _transactions = [
-    {
-      'type': 'Credit',
-      'amount': 50.00,
-      'date': DateTime.now().subtract(const Duration(days: 1)),
-      'description': 'Subscription Payment',
-    },
-    {
-      'type': 'Debit',
-      'amount': 12.50,
-      'date': DateTime.now().subtract(const Duration(days: 3)),
-      'description': 'Bus Ticket - Mumbai to Pune',
-    },
-    {
-      'type': 'Credit',
-      'amount': 100.00,
-      'date': DateTime.now().subtract(const Duration(days: 7)),
-      'description': 'Funds Added',
-    },
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _loadWalletData();
+  }
+
+  Future<void> _loadWalletData() async {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) return;
+
+    final doc =
+        await FirebaseFirestore.instance
+            .collection('passengers')
+            .doc(uid)
+            .get();
+    if (doc.exists) {
+      final data = doc.data()!;
+      setState(() {
+        _currentBalance = (data['wallet_balance'] ?? 0).toDouble();
+        _transactions = List<Map<String, dynamic>>.from(
+          data['transaction_logs'] ?? [],
+        );
+        _transactions.sort(
+          (a, b) =>
+              DateTime.parse(b['date']).compareTo(DateTime.parse(a['date'])),
+        );
+      });
+    }
+  }
+
+  void _showTransactionDialog(String type) {
+    final TextEditingController amountController = TextEditingController();
+
+    showModalBottomSheet(
+      context: context,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder:
+          (context) => Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  '$type Funds',
+                  style: GoogleFonts.poppins(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                TextField(
+                  controller: amountController,
+                  keyboardType: TextInputType.number,
+                  decoration: InputDecoration(
+                    hintText: 'Enter Amount',
+                    hintStyle: GoogleFonts.poppins(),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 15),
+                Row(
+                  children: [
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        child: Text('Cancel', style: GoogleFonts.poppins()),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed:
+                            () => _processTransaction(
+                              type,
+                              amountController.text,
+                            ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: gradient.colors.last,
+                        ),
+                        child: Text(
+                          'Confirm',
+                          style: GoogleFonts.poppins(color: Colors.white),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+    );
+  }
+
+  void _processTransaction(String type, String amountText) async {
+    final double? amount = double.tryParse(amountText);
+    if (amount == null || amount <= 0) {
+      Navigator.of(context).pop();
+      _showSnackBar('Invalid amount entered.', Colors.red);
+      return;
+    }
+
+    if (type == 'Withdraw' && _currentBalance < amount) {
+      Navigator.of(context).pop();
+      _showSnackBar('Insufficient balance.', Colors.red);
+      return;
+    }
+
+    setState(() {
+      if (type == 'Add') {
+        _currentBalance += amount;
+        _transactions.insert(0, {
+          'type': 'Credit',
+          'amount': amount,
+          'date': DateTime.now().toIso8601String(),
+          'description': 'Funds Added',
+        });
+      } else if (type == 'Withdraw') {
+        _currentBalance -= amount;
+        _transactions.insert(0, {
+          'type': 'Debit',
+          'amount': amount,
+          'date': DateTime.now().toIso8601String(),
+          'description': 'Funds Withdrawn',
+        });
+      }
+    });
+
+    await FirebaseFirestore.instance
+        .collection('passengers')
+        .doc(FirebaseAuth.instance.currentUser?.uid)
+        .update({
+          'transaction_logs': FieldValue.arrayUnion([
+            {
+              'type': type == 'Add' ? 'Credit' : 'Debit',
+              'amount': amount,
+              'date': DateTime.now().toIso8601String(),
+              'description': type == 'Add' ? 'Funds Added' : 'Funds Withdrawn',
+            },
+          ]),
+          'wallet_balance': _currentBalance,
+        });
+
+    Navigator.of(context).pop();
+    _showSnackBar('Transaction successful.', Colors.green);
+  }
+
+  void _showSnackBar(String message, Color color) {
+    ScaffoldMessenger.of(context)
+      ..clearSnackBars()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(message, style: GoogleFonts.poppins()),
+          backgroundColor: color,
+        ),
+      );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -45,28 +188,21 @@ class _WalletScreenState extends State<WalletScreen> {
       backgroundColor: Colors.grey[100],
       appBar: AppBar(
         title: Text(
-          'FlexiBus Wallet',
+          'Wallet',
           style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
         ),
-        flexibleSpace: Container(decoration: BoxDecoration(gradient: gradient)),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            // Wallet Balance Header
             Container(
               padding: const EdgeInsets.all(20.0),
               decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    gradient.colors.first.withOpacity(0.8),
-                    gradient.colors[1].withOpacity(0.8),
-                  ],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
+                gradient: gradient,
                 borderRadius: BorderRadius.circular(15.0),
                 boxShadow: [
                   BoxShadow(
@@ -101,12 +237,7 @@ class _WalletScreenState extends State<WalletScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: <Widget>[
                       ElevatedButton.icon(
-                        onPressed: () {
-                          // TODO: Implement Add Funds functionality
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Add Funds pressed')),
-                          );
-                        },
+                        onPressed: () => _showTransactionDialog('Add'),
                         icon: const Icon(Icons.add, color: Colors.white),
                         label: Text(
                           'Add Funds',
@@ -120,20 +251,14 @@ class _WalletScreenState extends State<WalletScreen> {
                         ),
                       ),
                       ElevatedButton.icon(
-                        onPressed: () {
-                          // TODO: Implement Withdraw Funds functionality (if applicable)
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Withdraw pressed')),
-                          );
-                        },
+                        onPressed: () => _showTransactionDialog('Withdraw'),
                         icon: const Icon(Icons.remove, color: Colors.white),
                         label: Text(
                           'Withdraw',
                           style: GoogleFonts.poppins(color: Colors.white),
                         ),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor:
-                              Colors.orange[400], // A contrasting color
+                          backgroundColor: Colors.orange[400],
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10.0),
                           ),
@@ -145,8 +270,6 @@ class _WalletScreenState extends State<WalletScreen> {
               ),
             ),
             const SizedBox(height: 24.0),
-
-            // Transaction History
             Text(
               'Transaction History',
               style: GoogleFonts.poppins(
@@ -182,7 +305,9 @@ class _WalletScreenState extends State<WalletScreen> {
                         style: GoogleFonts.poppins(fontWeight: FontWeight.w400),
                       ),
                       subtitle: Text(
-                        '${transaction['date'].toString().split(' ').first}',
+                        DateFormat(
+                          'dd MMM yyyy, hh:mm a',
+                        ).format(DateTime.parse(transaction['date'])),
                         style: GoogleFonts.poppins(color: Colors.grey[600]),
                       ),
                       trailing: Text(

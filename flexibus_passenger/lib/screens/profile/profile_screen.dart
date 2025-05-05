@@ -133,10 +133,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
       backgroundColor: Colors.white,
       appBar: AppBar(
         title: Text(
-          'FlexiBus Profile',
+          'Profile',
           style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
         ),
-        flexibleSpace: Container(decoration: BoxDecoration(gradient: gradient)),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
       ),
       body:
           isLoading
@@ -166,7 +167,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           color: Colors.black87,
                         ),
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 16),
                       Text(
                         "Update your details below",
                         style: GoogleFonts.poppins(

@@ -57,10 +57,11 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
       backgroundColor: Colors.grey[100],
       appBar: AppBar(
         title: Text(
-          'FlexiBus Subscriptions',
+          'Subscription Plans',
           style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
         ),
-        flexibleSpace: Container(decoration: BoxDecoration(gradient: gradient)),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
       ),
       body: ListView.builder(
         padding: const EdgeInsets.all(20.0),

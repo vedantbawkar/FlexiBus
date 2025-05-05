@@ -32,10 +32,14 @@ class _LoginScreenState extends State<LoginScreen> {
 
   void loginUser() async {
     setState(() => isLoading = true);
-    final authProvider = Provider.of<AuthProvider>(context, listen: false); //get the instance of the AuthProvider
+    final authProvider = Provider.of<AuthProvider>(
+      context,
+      listen: false,
+    ); //get the instance of the AuthProvider
 
     try {
-      final loginSuccess = await authProvider.login( //use the login method from AuthProvider
+      final loginSuccess = await authProvider.login(
+        //use the login method from AuthProvider
         email: emailController.text.trim(),
         password: passwordController.text.trim(),
       );
@@ -46,16 +50,18 @@ class _LoginScreenState extends State<LoginScreen> {
           MaterialPageRoute(builder: (_) => const HomeScreen()),
         );
       } else {
-         // Show error message using context from the current screen.
+        // Show error message using context from the current screen.
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Login failed. Please check your credentials.')),
+          const SnackBar(
+            content: Text('Login failed. Please check your credentials.'),
+          ),
         );
       }
     } catch (e) {
       // Handle other potential errors (e.g., network issues)
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: ${e.toString()}')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error: ${e.toString()}')));
     } finally {
       setState(() => isLoading = false);
     }
@@ -70,17 +76,22 @@ class _LoginScreenState extends State<LoginScreen> {
       return;
     }
 
-    final authProvider = Provider.of<AuthProvider>(context, listen: false); //get the instance of the AuthProvider
+    final authProvider = Provider.of<AuthProvider>(
+      context,
+      listen: false,
+    ); //get the instance of the AuthProvider
 
     try {
-      await authProvider.resetPassword(email); //use the resetPassword method from AuthProvider
+      await authProvider.resetPassword(
+        email,
+      ); //use the resetPassword method from AuthProvider
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Password reset email sent to $email')),
       );
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: ${e.toString()}')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error: ${e.toString()}')));
     }
   }
 
@@ -193,16 +204,16 @@ class _LoginScreenState extends State<LoginScreen> {
                     child:
                         isLoading
                             ? const CircularProgressIndicator(
-                                color: Colors.white,
-                              )
+                              color: Colors.white,
+                            )
                             : Text(
-                                'Login',
-                                style: GoogleFonts.poppins(
-                                  color: Colors.white,
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w600,
-                                ),
+                              'Login',
+                              style: GoogleFonts.poppins(
+                                color: Colors.white,
+                                fontSize: 18,
+                                fontWeight: FontWeight.w600,
                               ),
+                            ),
                   ),
                 ),
               ),
@@ -238,4 +249,3 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 }
-

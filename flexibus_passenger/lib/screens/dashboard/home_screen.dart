@@ -5,6 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart'; // Import Firestore
 import '../profile/profile_screen.dart';
 import '../subscription/subscription_screen.dart';
 import '../subscription/wallet_screen.dart';
+import 'main_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -24,7 +25,7 @@ class _HomeScreenState extends State<HomeScreen> {
   bool hasBooked = false; // Variable to store the "hasBooked" attribute
 
   static const List<Widget> _widgetOptions = <Widget>[
-    BusBookingScreen(),
+    MainScreen(),
     BusBookingOrTrackingScreen(),
     SubscriptionScreen(),
     WalletScreen(),
