@@ -55,6 +55,8 @@ class MainScreen extends StatelessWidget {
         final hasBooked = userData['hasBooked'] ?? false;
 
         return Scaffold(
+          backgroundColor: Colors.white,
+
           body: SingleChildScrollView(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -71,27 +73,32 @@ class MainScreen extends StatelessWidget {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            "Hello, $displayName!",
-                            style: GoogleFonts.poppins(
-                              fontSize: 28,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              "Hello, $displayName!",
+                              style: GoogleFonts.poppins(
+                                fontSize: 28,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                              overflow: TextOverflow.ellipsis,
                             ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            "Ready for your next journey?",
-                            style: GoogleFonts.poppins(
-                              fontSize: 16,
-                              color: Colors.white70,
+                            const SizedBox(height: 8),
+                            Text(
+                              "Ready for your next journey?",
+                              style: GoogleFonts.poppins(
+                                fontSize: 16,
+                                color: Colors.white70,
+                              ),
+                              overflow: TextOverflow.ellipsis,
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
+                      const SizedBox(width: 16),
                       CircleAvatar(
                         backgroundColor: Colors.white30,
                         radius: 30,
@@ -200,6 +207,7 @@ class MainScreen extends StatelessWidget {
                     child: Column(
                       children: [
                         ListTile(
+                          tileColor: Colors.white,
                           leading: const Icon(Icons.person_outline),
                           title: Text("Profile", style: GoogleFonts.poppins()),
                           onTap: () {
@@ -211,8 +219,9 @@ class MainScreen extends StatelessWidget {
                             );
                           },
                         ),
-                        const Divider(height: 1, color: Colors.grey),
+                        Divider(height: 1, color: gradient.colors[2]),
                         ListTile(
+                          tileColor: Colors.white,
                           leading: const Icon(Icons.settings_outlined),
                           title: Text("Settings", style: GoogleFonts.poppins()),
                           onTap: () {
@@ -232,8 +241,9 @@ class MainScreen extends StatelessWidget {
                             );
                           },
                         ),
-                        const Divider(height: 1, color: Colors.grey),
+                        Divider(height: 1, color: gradient.colors[2]),
                         ListTile(
+                          tileColor: Colors.white,
                           leading: const Icon(Icons.logout),
                           title: Text("Logout", style: GoogleFonts.poppins()),
                           onTap: () => _logout(context),
