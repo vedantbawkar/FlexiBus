@@ -1,6 +1,7 @@
 import 'package:device_preview/device_preview.dart';
 import 'package:flexibus_passenger/providers/auth_provider.dart';
 import 'package:flexibus_passenger/screens/dashboard/home_screen.dart';
+import 'package:flexibus_passenger/services/auth_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -13,7 +14,7 @@ void main() async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   //Initialize services after Firebase
-
+  await AuthService.initialize();
   // Get saved theme mode
   // final themeMode = await SettingsService.getThemeMode();
   // runApp(FlexiBusApp(initialThemeMode: themeMode));
@@ -42,8 +43,16 @@ class FlexiBusApp extends StatelessWidget {
       child: MaterialApp(
         title: 'FlexiBus - Hop on. Ride smart',
         debugShowCheckedModeBanner: false,
-        home: LoginScreen(),
-        // home: HomeScreen(),
+        home: Consumer<AuthProvider>(
+          builder: (context, authProvider, _) {
+            // Check if the user is logged in and navigate accordingly
+            if (authProvider.isAuthenticated) {
+              return HomeScreen();
+            } else {
+              return const LoginScreen(); // Replace with your login screen
+            }
+          },
+        ),
       ),
     );
   }
