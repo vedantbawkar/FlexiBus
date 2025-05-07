@@ -155,7 +155,7 @@ class MainScreen extends StatelessWidget {
                         context,
                         icon: Icons.star,
                         title: "Subscription",
-                        subtitle: "Your benefits & plans",
+                        subtitle: "View  benefits & plans",
                         onTap: () {
                           Navigator.push(
                             context,

@@ -6,7 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
-import 'screens/auth/login_screen.dart';
+import 'package:flexibus_passenger/screens/auth/login_screen.dart';
 import 'firebase_options.dart';
 
 void main() async {

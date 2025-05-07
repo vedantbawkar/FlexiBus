@@ -23,6 +23,56 @@ class _Tab1PassengersState extends State<Tab1Passengers> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
+      appBar: AppBar(
+        title: Text(
+          "Manage Passengers",
+          style: GoogleFonts.poppins(fontSize: 24, fontWeight: FontWeight.w600),
+        ),
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black87,
+        elevation: 0,
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(80),
+          child: Column(
+            children: [
+              Container(
+                height: 6,
+                margin: const EdgeInsets.symmetric(horizontal: 28),
+                decoration: BoxDecoration(
+                  gradient: gradient,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                child: TextField(
+                  decoration: InputDecoration(
+                    hintText: "Search by name or email...",
+                    hintStyle: GoogleFonts.poppins(color: Colors.black54),
+                    prefixIcon: Icon(Icons.search, color: gradient.colors[1]),
+                    filled: true,
+                    fillColor: Colors.white,
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: const BorderSide(color: Colors.black12),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: gradient.colors.first),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  style: GoogleFonts.poppins(),
+                  onChanged: (value) {
+                    setState(() {
+                      searchQuery = value.toLowerCase().trim();
+                    });
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance.collection('passengers').snapshots(),
         builder: (context, snapshot) {

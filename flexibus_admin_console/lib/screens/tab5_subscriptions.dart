@@ -2,14 +2,14 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-class Tab4Routes extends StatefulWidget {
-  const Tab4Routes({super.key});
+class Tab5Subscriptions extends StatefulWidget {
+  const Tab5Subscriptions({super.key});
 
   @override
-  State<Tab4Routes> createState() => _Tab4RoutesState();
+  State<Tab5Subscriptions> createState() => _Tab5SubscriptionsState();
 }
 
-class _Tab4RoutesState extends State<Tab4Routes> {
+class _Tab5SubscriptionsState extends State<Tab5Subscriptions> {
   String searchQuery = '';
 
   final LinearGradient gradient = const LinearGradient(
@@ -24,7 +24,7 @@ class _Tab4RoutesState extends State<Tab4Routes> {
       backgroundColor: Colors.white,
       appBar: AppBar(
         title: Text(
-          "Manage Bus Routes",
+          "Manage Subscription Plans",
           style: GoogleFonts.poppins(fontSize: 24, fontWeight: FontWeight.w600),
         ),
         backgroundColor: Colors.white,
@@ -32,9 +32,9 @@ class _Tab4RoutesState extends State<Tab4Routes> {
         elevation: 0,
         actions: [
           GestureDetector(
-            onTap: () => _showRouteForm(),
+            onTap: () => _showPlanForm(),
             child: Text(
-              "Add a new route",
+              "Add a new plan",
               style: GoogleFonts.poppins(
                 fontSize: 16,
                 fontWeight: FontWeight.w500,
@@ -44,7 +44,7 @@ class _Tab4RoutesState extends State<Tab4Routes> {
           ),
           IconButton(
             icon: Icon(Icons.add_circle, color: gradient.colors[1]),
-            onPressed: () => _showRouteForm(),
+            onPressed: () => _showPlanForm(),
           ),
         ],
         bottom: PreferredSize(
@@ -63,7 +63,7 @@ class _Tab4RoutesState extends State<Tab4Routes> {
                 padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
                 child: TextField(
                   decoration: InputDecoration(
-                    hintText: "Search route or stop...",
+                    hintText: "Search plan...",
                     hintStyle: GoogleFonts.poppins(color: Colors.black54),
                     prefixIcon: Icon(Icons.search, color: gradient.colors[1]),
                     filled: true,
@@ -90,7 +90,10 @@ class _Tab4RoutesState extends State<Tab4Routes> {
         ),
       ),
       body: StreamBuilder<QuerySnapshot>(
-        stream: FirebaseFirestore.instance.collection('routes').snapshots(),
+        stream:
+            FirebaseFirestore.instance
+                .collection('subscription_plans')
+                .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(
@@ -101,7 +104,7 @@ class _Tab4RoutesState extends State<Tab4Routes> {
           if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
             return Center(
               child: Text(
-                "No routes found.",
+                "No subscription plans found.",
                 style: GoogleFonts.poppins(color: Colors.black54, fontSize: 16),
               ),
             );
@@ -110,18 +113,19 @@ class _Tab4RoutesState extends State<Tab4Routes> {
           final filteredDocs =
               snapshot.data!.docs.where((doc) {
                 final data = doc.data() as Map<String, dynamic>;
-                final routeNumber =
-                    data['routeNumber']?.toString().toLowerCase() ?? '';
-                final stops =
-                    (data['stops'] as List<dynamic>).join(', ').toLowerCase();
-                return routeNumber.contains(searchQuery) ||
-                    stops.contains(searchQuery);
+                final name = data['name']?.toLowerCase() ?? '';
+                final benefits =
+                    (data['benefits'] as List<dynamic>)
+                        .join(', ')
+                        .toLowerCase();
+                return name.contains(searchQuery) ||
+                    benefits.contains(searchQuery);
               }).toList();
 
           if (filteredDocs.isEmpty) {
             return Center(
               child: Text(
-                "No matching routes found",
+                "No matching subscription plans found",
                 style: GoogleFonts.poppins(color: Colors.black54, fontSize: 16),
               ),
             );
@@ -131,8 +135,8 @@ class _Tab4RoutesState extends State<Tab4Routes> {
             padding: const EdgeInsets.all(16),
             itemCount: filteredDocs.length,
             itemBuilder: (context, index) {
-              final route = filteredDocs[index];
-              final data = route.data() as Map<String, dynamic>;
+              final doc = filteredDocs[index];
+              final data = doc.data() as Map<String, dynamic>;
 
               return Container(
                 margin: const EdgeInsets.only(bottom: 16),
@@ -163,7 +167,7 @@ class _Tab4RoutesState extends State<Tab4Routes> {
                         children: [
                           Expanded(
                             child: Text(
-                              "Route ${data['routeNumber'] ?? 'N/A'}",
+                              data['name'] ?? 'N/A',
                               style: GoogleFonts.poppins(
                                 fontSize: 18,
                                 fontWeight: FontWeight.w600,
@@ -180,19 +184,12 @@ class _Tab4RoutesState extends State<Tab4Routes> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           _info(
-                            "Stops",
-                            (data['stops'] as List<dynamic>).join(', '),
+                            "Benefits",
+                            (data['benefits'] as List<dynamic>).join(', '),
                           ),
-                          _info("Base Fare", "₹${data['baseFare']}"),
-                          _info("Max Fare", "₹${data['maxFare']}"),
-                          _info(
-                            "Timings",
-                            (data['timings'] as List<dynamic>).join(', '),
-                          ),
-                          _info(
-                            "Weekdays",
-                            (data['weekdays'] as List<dynamic>).join(', '),
-                          ),
+                          _info("Weekly Cost", "₹${data['weeklyCost']}"),
+                          _info("Monthly Cost", "₹${data['monthlyCost']}"),
+                          _info("Annual Cost", "₹${data['annualCost']}"),
                           const SizedBox(height: 16),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.end,
@@ -200,8 +197,8 @@ class _Tab4RoutesState extends State<Tab4Routes> {
                               _actionButton(
                                 "Edit",
                                 gradient.colors[1],
-                                () => _showRouteForm(
-                                  routeId: route.id,
+                                () => _showPlanForm(
+                                  planId: doc.id,
                                   existingData: data,
                                 ),
                               ),
@@ -209,7 +206,7 @@ class _Tab4RoutesState extends State<Tab4Routes> {
                               _actionButton(
                                 "Delete",
                                 Colors.red,
-                                () => _deleteRoute(route.id),
+                                () => _deletePlan(doc.id),
                               ),
                             ],
                           ),
@@ -269,37 +266,35 @@ class _Tab4RoutesState extends State<Tab4Routes> {
     );
   }
 
-  void _deleteRoute(String id) {
-    FirebaseFirestore.instance.collection('routes').doc(id).delete();
+  void _deletePlan(String id) {
+    FirebaseFirestore.instance
+        .collection('subscription_plans')
+        .doc(id)
+        .delete();
   }
 
-  void _showRouteForm({String? routeId, Map<String, dynamic>? existingData}) {
-    final routeNumberController = TextEditingController(
-      text: existingData?['routeNumber'],
-    );
-    final stopsController = TextEditingController(
+  void _showPlanForm({String? planId, Map<String, dynamic>? existingData}) {
+    // Use search query as initial name if adding new plan and search query is not empty
+    final initialName =
+        planId == null && searchQuery.isNotEmpty
+            ? searchQuery
+            : existingData?['name'];
+
+    final nameController = TextEditingController(text: initialName);
+    final benefitsController = TextEditingController(
       text:
           existingData != null
-              ? (existingData['stops'] as List).join(', ')
+              ? (existingData['benefits'] as List).join(', ')
               : '',
     );
-    final baseFareController = TextEditingController(
-      text: existingData?['baseFare']?.toString(),
+    final weeklyCostController = TextEditingController(
+      text: existingData?['weeklyCost']?.toString(),
     );
-    final maxFareController = TextEditingController(
-      text: existingData?['maxFare']?.toString(),
+    final monthlyCostController = TextEditingController(
+      text: existingData?['monthlyCost']?.toString(),
     );
-    final timingsController = TextEditingController(
-      text:
-          existingData != null
-              ? (existingData['timings'] as List).join(', ')
-              : '',
-    );
-    final weekdaysController = TextEditingController(
-      text:
-          existingData != null
-              ? (existingData['weekdays'] as List).join(', ')
-              : '',
+    final annualCostController = TextEditingController(
+      text: existingData?['annualCost']?.toString(),
     );
 
     showDialog(
@@ -307,19 +302,18 @@ class _Tab4RoutesState extends State<Tab4Routes> {
       builder:
           (_) => AlertDialog(
             title: Text(
-              routeId == null ? "Add Route" : "Edit Route",
+              planId == null ? "Add Plan" : "Edit Plan",
               style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
             ),
             content: SingleChildScrollView(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  _field(routeNumberController, "Route Number"),
-                  _field(stopsController, "Stops (comma-separated)"),
-                  _field(baseFareController, "Base Fare"),
-                  _field(maxFareController, "Max Fare"),
-                  _field(timingsController, "Timings (comma-separated)"),
-                  _field(weekdaysController, "Weekdays (comma-separated)"),
+                  _field(nameController, "Plan Name"),
+                  _field(benefitsController, "Benefits (comma-separated)"),
+                  _field(weeklyCostController, "Weekly Cost"),
+                  _field(monthlyCostController, "Monthly Cost"),
+                  _field(annualCostController, "Annual Cost"),
                 ],
               ),
             ),
@@ -333,40 +327,39 @@ class _Tab4RoutesState extends State<Tab4Routes> {
               ),
               ElevatedButton(
                 onPressed: () {
-                  final newRoute = {
-                    'routeNumber': routeNumberController.text.trim(),
-                    'stops':
-                        stopsController.text
+                  final planData = {
+                    'name': nameController.text.trim().replaceFirst(
+                      nameController.text.trim()[0],
+                      nameController.text.trim()[0].toUpperCase(),
+                    ),
+                    'benefits':
+                        benefitsController.text
                             .trim()
                             .split(',')
-                            .map((e) => e.trim())
+                            .map(
+                              (e) => e.trim().replaceFirst(
+                                e.trim()[0],
+                                e.trim()[0].toUpperCase(),
+                              ),
+                            )
                             .toList(),
-                    'baseFare':
-                        int.tryParse(baseFareController.text.trim()) ?? 0,
-                    'maxFare': int.tryParse(maxFareController.text.trim()) ?? 0,
-                    'timings':
-                        timingsController.text
-                            .trim()
-                            .split(',')
-                            .map((e) => e.trim())
-                            .toList(),
-                    'weekdays':
-                        weekdaysController.text
-                            .trim()
-                            .split(',')
-                            .map((e) => e.trim())
-                            .toList(),
+                    'weeklyCost':
+                        int.tryParse(weeklyCostController.text.trim()) ?? 0,
+                    'monthlyCost':
+                        int.tryParse(monthlyCostController.text.trim()) ?? 0,
+                    'annualCost':
+                        int.tryParse(annualCostController.text.trim()) ?? 0,
                   };
 
-                  if (routeId == null) {
+                  if (planId == null) {
                     FirebaseFirestore.instance
-                        .collection('routes')
-                        .add(newRoute);
+                        .collection('subscription_plans')
+                        .add(planData);
                   } else {
                     FirebaseFirestore.instance
-                        .collection('routes')
-                        .doc(routeId)
-                        .update(newRoute);
+                        .collection('subscription_plans')
+                        .doc(planId)
+                        .update(planData);
                   }
 
                   Navigator.pop(context);
@@ -382,7 +375,7 @@ class _Tab4RoutesState extends State<Tab4Routes> {
                   ),
                 ),
                 child: Text(
-                  routeId == null ? "Add" : "Update",
+                  planId == null ? "Add" : "Update",
                   style: GoogleFonts.poppins(fontWeight: FontWeight.w500),
                 ),
               ),
