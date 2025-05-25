@@ -160,7 +160,10 @@ class MainScreen extends StatelessWidget {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (_) => const SubscriptionScreen(),
+                              builder:
+                                  (_) => const SubscriptionScreen(
+                                    showAppBar: true,
+                                  ),
                             ),
                           );
                         },
@@ -174,7 +177,8 @@ class MainScreen extends StatelessWidget {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (_) => const WalletScreen(),
+                              builder:
+                                  (_) => const WalletScreen(showAppBar: true),
                             ),
                           );
                         },

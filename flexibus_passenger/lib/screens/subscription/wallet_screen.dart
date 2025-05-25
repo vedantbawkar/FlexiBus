@@ -5,7 +5,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 
 class WalletScreen extends StatefulWidget {
-  const WalletScreen({super.key});
+  final bool showAppBar;
+  const WalletScreen({super.key, this.showAppBar = true});
 
   @override
   State<WalletScreen> createState() => _WalletScreenState();
@@ -186,14 +187,17 @@ class _WalletScreenState extends State<WalletScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[100],
-      appBar: AppBar(
-        title: Text(
-          'Wallet',
-          style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
-        ),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-      ),
+      appBar:
+          widget.showAppBar
+              ? AppBar(
+                title: Text(
+                  'Wallet',
+                  style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+                ),
+                backgroundColor: Colors.transparent,
+                elevation: 0,
+              )
+              : null,
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20.0),
         child: Column(

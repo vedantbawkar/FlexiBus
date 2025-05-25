@@ -3,7 +3,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class SubscriptionScreen extends StatefulWidget {
-  const SubscriptionScreen({super.key});
+  final bool showAppBar;
+  const SubscriptionScreen({super.key, this.showAppBar = false});
 
   @override
   State<SubscriptionScreen> createState() => _SubscriptionScreenState();
@@ -16,13 +17,23 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
     end: Alignment.centerRight,
   );
 
-  void _showSubscriptionOptions(BuildContext context, Map<String, dynamic> plan, GlobalKey buttonKey) {
-    final List<Map<String, dynamic>> durations = [
-      {'type': 'Daily', 'cost': plan['dailyCost'] ?? 0},
-      {'type': 'Weekly', 'cost': plan['weeklyCost'] ?? 0},
-      {'type': 'Monthly', 'cost': plan['monthlyCost'] ?? 0},
-      {'type': 'Annual', 'cost': plan['annualCost'] ?? 0},
-    ].where((duration) => duration['cost'] > 0 && duration['type'] != 'Monthly').toList();
+  void _showSubscriptionOptions(
+    BuildContext context,
+    Map<String, dynamic> plan,
+    GlobalKey buttonKey,
+  ) {
+    final List<Map<String, dynamic>> durations =
+        [
+              {'type': 'Daily', 'cost': plan['dailyCost'] ?? 0},
+              {'type': 'Weekly', 'cost': plan['weeklyCost'] ?? 0},
+              {'type': 'Monthly', 'cost': plan['monthlyCost'] ?? 0},
+              {'type': 'Annual', 'cost': plan['annualCost'] ?? 0},
+            ]
+            .where(
+              (duration) =>
+                  duration['cost'] > 0 && duration['type'] != 'Monthly',
+            )
+            .toList();
 
     if (durations.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -33,7 +44,8 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
       return;
     }
 
-    final RenderBox button = buttonKey.currentContext!.findRenderObject() as RenderBox;
+    final RenderBox button =
+        buttonKey.currentContext!.findRenderObject() as RenderBox;
     final Offset position = button.localToGlobal(Offset.zero);
     final Size size = button.size;
 
@@ -45,59 +57,64 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
         position.dx + size.width,
         position.dy + size.height + 200,
       ),
-      items: durations.asMap().entries.map((entry) {
-        final index = entry.key;
-        final duration = entry.value;
-        return PopupMenuItem(
-          value: duration,
-          child: Container(
-            padding: const EdgeInsets.symmetric(vertical: 8.0),
-            decoration: BoxDecoration(
-              border: Border(
-                bottom: index < durations.length - 1
-                    ? BorderSide(
-                        color: Colors.grey[200]!,
-                        width: 1,
-                      )
-                    : BorderSide.none,
+      items:
+          durations.asMap().entries.map((entry) {
+            final index = entry.key;
+            final duration = entry.value;
+            return PopupMenuItem(
+              value: duration,
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                decoration: BoxDecoration(
+                  border: Border(
+                    bottom:
+                        index < durations.length - 1
+                            ? BorderSide(color: Colors.grey[200]!, width: 1)
+                            : BorderSide.none,
+                  ),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      '${duration['type']} Plan',
+                      style: GoogleFonts.poppins(
+                        fontSize: 14.0,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    Text(
+                      '₹${duration['cost']}',
+                      style: GoogleFonts.poppins(
+                        fontSize: 14.0,
+                        color: gradient.colors.last,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  '${duration['type']} Plan',
-                  style: GoogleFonts.poppins(
-                    fontSize: 14.0,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                Text(
-                  '₹${duration['cost']}',
-                  style: GoogleFonts.poppins(
-                    fontSize: 14.0,
-                    color: gradient.colors.last,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      }).toList(),
+            );
+          }).toList(),
       elevation: 8.0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12.0),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
       color: Colors.white,
     ).then((selectedDuration) {
       if (selectedDuration != null) {
-        _handleSubscription(plan, selectedDuration['type'], selectedDuration['cost']);
+        _handleSubscription(
+          plan,
+          selectedDuration['type'],
+          selectedDuration['cost'],
+        );
       }
     });
   }
 
-  void _handleSubscription(Map<String, dynamic> plan, String durationType, num cost) {
+  void _handleSubscription(
+    Map<String, dynamic> plan,
+    String durationType,
+    num cost,
+  ) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
@@ -112,16 +129,22 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[100],
-      appBar: AppBar(
-        title: Text(
-          'Subscription Plans',
-          style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
-        ),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-      ),
+      appBar:
+          widget.showAppBar
+              ? AppBar(
+                title: Text(
+                  'Subscription Plans',
+                  style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+                ),
+                backgroundColor: Colors.transparent,
+                elevation: 0,
+              )
+              : null,
       body: StreamBuilder<QuerySnapshot>(
-        stream: FirebaseFirestore.instance.collection('subscription_plans').snapshots(),
+        stream:
+            FirebaseFirestore.instance
+                .collection('subscription_plans')
+                .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.hasError) {
             return Center(
@@ -220,12 +243,19 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                         children: [
                           Expanded(
                             child: ElevatedButton(
-                              onPressed: monthlyCost > 0
-                                  ? () => _handleSubscription(plan, 'Monthly', monthlyCost)
-                                  : null,
+                              onPressed:
+                                  monthlyCost > 0
+                                      ? () => _handleSubscription(
+                                        plan,
+                                        'Monthly',
+                                        monthlyCost,
+                                      )
+                                      : null,
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: gradient.colors.last,
-                                padding: const EdgeInsets.symmetric(vertical: 14.0),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 14.0,
+                                ),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.horizontal(
                                     left: const Radius.circular(10.0),
@@ -250,7 +280,12 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                               right: Radius.circular(10.0),
                             ),
                             child: InkWell(
-                              onTap: () => _showSubscriptionOptions(context, plan, dropdownKey),
+                              onTap:
+                                  () => _showSubscriptionOptions(
+                                    context,
+                                    plan,
+                                    dropdownKey,
+                                  ),
                               customBorder: const RoundedRectangleBorder(
                                 borderRadius: BorderRadius.horizontal(
                                   right: Radius.circular(10.0),

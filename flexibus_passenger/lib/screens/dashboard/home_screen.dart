@@ -27,8 +27,8 @@ class _HomeScreenState extends State<HomeScreen> {
   static const List<Widget> _widgetOptions = <Widget>[
     MainScreen(),
     BusBookingOrTrackingScreen(),
-    SubscriptionScreen(),
-    WalletScreen(),
+    SubscriptionScreen(showAppBar: false),
+    WalletScreen(showAppBar: false),
     ProfileScreen(),
   ];
 
