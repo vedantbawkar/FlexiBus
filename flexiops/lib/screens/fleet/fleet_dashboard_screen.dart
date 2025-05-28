@@ -17,73 +17,44 @@ class FleetOperatorDashboard extends StatefulWidget {
 
 class _FleetOperatorDashboardState extends State<FleetOperatorDashboard> {
   int _selectedIndex = 0;
-late AuthProvider authProvider;
+  late AuthProvider authProvider;
 
-@override
-void didChangeDependencies() {
-  super.didChangeDependencies();
-  authProvider = Provider.of<AuthProvider>(context);
-}
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    authProvider = Provider.of<AuthProvider>(context);
+  }
 
-List<Widget> get _screens => [
-  const FleetHomeScreen(),
-   FleetViewScreen(),
-  FleetDriversScreen(fleetOperatorId: authProvider.user?.uid ?? ''),
-  const FleetReportsScreen(),
-  const FleetProfileScreen(),
-    // const BusScreen(), 
-];
-
+  List<Widget> get _screens => [
+    const FleetHomeScreen(),
+    FleetViewScreen(),
+    FleetDriversScreen(fleetOperatorId: authProvider.user?.uid ?? ''),
+    const FleetReportsScreen(),
+    const FleetProfileScreen(),
+    // const BusScreen(),
+  ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-
       appBar: AppBar(
-        elevation: 0,
-        title: Text(
-          'FleetOps Dashboard',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: lightYellowColor,
-          ),
+        title: Row(
+          children: [
+            Icon(Icons.business_rounded, color: lightYellowColor),
+            const SizedBox(width: 8),
+            const Text(
+              'FlexiOps - Fleet',
+              style: TextStyle(color: lightYellowColor),
+            ),
+          ],
         ),
         actions: [
           // Notifications Icon
-          Stack(
-            alignment: Alignment.center,
-            children: [
-              IconButton(
-                icon: const Icon(Icons.notifications_outlined, size: 28),
-                onPressed: () {
-                  // Show notifications
-                },
-              ),
-              Positioned(
-                top: 10,
-                right: 10,
-                child: Container(
-                  padding: const EdgeInsets.all(2),
-                  decoration: BoxDecoration(
-                    color: burgundyColor,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  constraints: const BoxConstraints(
-                    minWidth: 16,
-                    minHeight: 16,
-                  ),
-                  child: const Text(
-                    '3',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 10,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-              ),
-            ],
+          IconButton(
+            icon: const Icon(Icons.notifications_outlined, size: 28),
+            onPressed: () {
+              // Show notifications
+            },
           ),
           // Profile Icon
           IconButton(
@@ -140,7 +111,6 @@ List<Widget> get _screens => [
       ),
     );
   }
-
 }
 
 /// HOME SCREEN ///
@@ -248,13 +218,33 @@ class FleetHomeScreen extends StatelessWidget {
                   context,
                   'Manage Buses',
                   Icons.directions_bus,
-                  () {},
+                  () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => FleetViewScreen(),
+                      ),
+                    );
+                  },
                 ),
                 _buildActionButton(
                   context,
                   'Manage Drivers',
                   Icons.people_alt_outlined,
-                  () {},
+                  () {
+                    AuthProvider authProvider = Provider.of<AuthProvider>(
+                      context,
+                    );
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder:
+                            (context) => FleetDriversScreen(
+                              fleetOperatorId: authProvider.user?.uid ?? '',
+                            ),
+                      ),
+                    );
+                  },
                 ),
                 _buildActionButton(
                   context,
@@ -410,7 +400,7 @@ class FleetHomeScreen extends StatelessWidget {
               'Bus #B-2104 needs scheduled maintenance',
               Icons.build_outlined,
               Colors.orange,
-              context
+              context,
             ),
 
             const SizedBox(height: 12),
@@ -420,7 +410,7 @@ class FleetHomeScreen extends StatelessWidget {
               'Driver Alex Thompson missed check-in on Route 42',
               Icons.warning_amber_outlined,
               Colors.red,
-              context
+              context,
             ),
 
             const SizedBox(height: 12),
@@ -430,7 +420,7 @@ class FleetHomeScreen extends StatelessWidget {
               'New feedback received for Route 15 service',
               Icons.feedback_outlined,
               Colors.blue,
-              context
+              context,
             ),
 
             const SizedBox(height: 40),
@@ -521,8 +511,7 @@ class FleetHomeScreen extends StatelessWidget {
         ),
         child: Row(
           children: [
-            Icon(icon, size: 24, 
-            ),
+            Icon(icon, size: 24),
             const SizedBox(width: 12),
             Text(
               title,

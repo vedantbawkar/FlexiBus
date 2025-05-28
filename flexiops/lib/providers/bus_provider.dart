@@ -12,13 +12,13 @@ class BusProvider extends ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
 
-  Future<void> fetchBuses() async {
+  Future<void> fetchBuses(String fleetOperatorId) async {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
 
     try {
-      _buses = await _busService.fetchAllBuses();
+      _buses = await _busService.fetchAllBuses(fleetOperatorId);
     } catch (e) {
       debugPrint("Error fetching buses: $e");
       _errorMessage = "Failed to fetch buses. Please try again.";
@@ -44,7 +44,7 @@ class BusProvider extends ChangeNotifier {
   Future<void> addBus(Bus bus) async {
     try {
       await _busService.addBus(bus);
-      await fetchBuses();
+      await fetchBuses(bus.fleetOperatorId);
     } catch (e) {
       debugPrint("Error adding bus: $e");
       _errorMessage = "Failed to add bus. Please try again.";

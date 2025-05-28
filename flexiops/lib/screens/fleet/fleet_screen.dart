@@ -1,3 +1,4 @@
+import 'package:flexiops/providers/auth_provider.dart';
 import 'package:flexiops/providers/bus_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -16,8 +17,15 @@ class _FleetViewScreenState extends State<FleetViewScreen> {
   @override
   void initState() {
     super.initState();
+    AuthProvider authProvider = Provider.of<AuthProvider>(
+      context,
+      listen: false,
+    );
     Future.microtask(
-      () => Provider.of<BusProvider>(context, listen: false).fetchBuses(),
+      () => Provider.of<BusProvider>(
+        context,
+        listen: false,
+      ).fetchBuses(authProvider.user?.uid ?? ''),
     );
   }
 
@@ -731,8 +739,31 @@ class _FleetViewScreenState extends State<FleetViewScreen> {
             const Text('Fleet Manager'),
           ],
         ),
-        backgroundColor: theme.colorScheme.primary,
-        elevation: 2,
+        backgroundColor: theme.colorScheme.primaryContainer,
+        actions: [
+          //Available buses count
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Center(
+              child: Text(
+                '${buses.length} Buses',
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.onPrimary,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
+              ),
+            ),
+          ),
+          IconButton(
+            icon: Icon(Icons.refresh, color: theme.colorScheme.onPrimary),
+            onPressed: () {
+              busProvider.fetchBuses(
+                Provider.of<AuthProvider>(context, listen: false).user!.uid,
+              );
+            },
+          ),
+        ],
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.only(
             bottomLeft: Radius.circular(20),
@@ -810,57 +841,6 @@ class _FleetViewScreenState extends State<FleetViewScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Row(
-                            children: [
-                              Icon(
-                                Icons.explore,
-                                color: theme.colorScheme.primary,
-                              ),
-                              const SizedBox(width: 8),
-                              Text(
-                                'Available Buses',
-                                style: theme.textTheme.titleLarge?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                  color: theme.colorScheme.primary,
-                                ),
-                              ),
-                            ],
-                          ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 6,
-                            ),
-                            decoration: BoxDecoration(
-                              color: theme.colorScheme.primary.withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            child: Row(
-                              children: [
-                                Icon(
-                                  Icons.directions_bus,
-                                  size: 16,
-                                  color: theme.colorScheme.primary,
-                                ),
-                                const SizedBox(width: 4),
-                                Text(
-                                  '${buses.length} Buses',
-                                  style: theme.textTheme.bodyMedium?.copyWith(
-                                    color: theme.colorScheme.primary,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
                     Expanded(
                       child: ListView.builder(
                         itemCount: buses.length,

@@ -16,107 +16,146 @@ class _FleetDriversScreenState extends State<FleetDriversScreen> {
   @override
   void initState() {
     super.initState();
-    Provider.of<DriverProvider>(context, listen: false).loadDrivers(widget.fleetOperatorId);
+    Provider.of<DriverProvider>(
+      context,
+      listen: false,
+    ).loadDrivers(widget.fleetOperatorId);
   }
 
   void _showDriverForm({DriverModel? driver}) {
     final nameController = TextEditingController(text: driver?.name ?? '');
     final phoneController = TextEditingController(text: driver?.phone ?? '');
-    final licenseController = TextEditingController(text: driver?.license ?? '');
-    final statusController = TextEditingController(text: driver?.status ?? 'active');
-    final busController = TextEditingController(text: driver?.busAssigned ?? '');
-    
+    final licenseController = TextEditingController(
+      text: driver?.license ?? '',
+    );
+    final statusController = TextEditingController(
+      text: driver?.status ?? 'active',
+    );
+    final busController = TextEditingController(
+      text: driver?.busAssigned ?? '',
+    );
+
     // Use StatefulBuilder to handle state changes within the dialog
     showDialog(
       context: context,
-      builder: (BuildContext dialogContext) => StatefulBuilder(
-        builder: (dialogContext, setState) {
-          return AlertDialog(
-            title: Text(driver == null ? 'Add Driver' : 'Edit Driver'),
-            content: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  _buildFormField(nameController, 'Name', Icons.person),
-                  SizedBox(height: 16),
-                  _buildFormField(phoneController, 'Contact', Icons.phone),
-                  SizedBox(height: 16),
-                  _buildFormField(licenseController, 'License', Icons.credit_card),
-                  SizedBox(height: 16),
-                  _buildFormField(busController, 'Assigned Bus ID', Icons.directions_bus),
-                  SizedBox(height: 16),
-                  Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Theme.of(dialogContext).colorScheme.primary.withOpacity(0.3)),
-                    ),
-                    padding: EdgeInsets.symmetric(horizontal: 12),
-                    child: DropdownButtonFormField<String>(
-                      value: statusController.text,
-                      decoration: InputDecoration(
-                        labelText: 'Status',
-                        prefixIcon: Icon(Icons.toggle_on),
-                        border: InputBorder.none,
+      builder:
+          (BuildContext dialogContext) => StatefulBuilder(
+            builder: (dialogContext, setState) {
+              return AlertDialog(
+                title: Text(driver == null ? 'Add Driver' : 'Edit Driver'),
+                content: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      _buildFormField(nameController, 'Name', Icons.person),
+                      SizedBox(height: 16),
+                      _buildFormField(phoneController, 'Contact', Icons.phone),
+                      SizedBox(height: 16),
+                      _buildFormField(
+                        licenseController,
+                        'License',
+                        Icons.credit_card,
                       ),
-                      items: ['active', 'inactive'].map((status) {
-                        return DropdownMenuItem(
-                          value: status,
-                          child: Text(status.capitalize()),
-                        );
-                      }).toList(),
-                      onChanged: (value) {
-                        if (value != null) {
-                          setState(() {
-                            statusController.text = value;
-                          });
-                        }
-                      },
-                    ),
+                      SizedBox(height: 16),
+                      _buildFormField(
+                        busController,
+                        'Assigned Bus ID',
+                        Icons.directions_bus,
+                      ),
+                      SizedBox(height: 16),
+                      Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: Theme.of(
+                              dialogContext,
+                            ).colorScheme.primary.withOpacity(0.3),
+                          ),
+                        ),
+                        padding: EdgeInsets.symmetric(horizontal: 12),
+                        child: DropdownButtonFormField<String>(
+                          value: statusController.text,
+                          decoration: InputDecoration(
+                            labelText: 'Status',
+                            prefixIcon: Icon(Icons.toggle_on),
+                            border: InputBorder.none,
+                          ),
+                          items:
+                              ['active', 'inactive'].map((status) {
+                                return DropdownMenuItem(
+                                  value: status,
+                                  child: Text(status.capitalize()),
+                                );
+                              }).toList(),
+                          onChanged: (value) {
+                            if (value != null) {
+                              setState(() {
+                                statusController.text = value;
+                              });
+                            }
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(dialogContext),
+                    child: Text('Cancel'),
+                  ),
+                  ElevatedButton(
+                    onPressed: () {
+                      final newDriver = DriverModel(
+                        id:
+                            driver?.id ??
+                            FirebaseFirestore.instance
+                                .collection('opusers')
+                                .doc()
+                                .id,
+                        name: nameController.text,
+                        phone: phoneController.text,
+                        license: licenseController.text,
+                        busAssigned:
+                            busController.text.isEmpty
+                                ? null
+                                : busController.text,
+                        status: statusController.text,
+                        fleetOperatorId: widget.fleetOperatorId,
+                      );
+                      if (driver == null) {
+                        Provider.of<DriverProvider>(
+                          context,
+                          listen: false,
+                        ).addDriver(newDriver);
+                      } else {
+                        Provider.of<DriverProvider>(
+                          context,
+                          listen: false,
+                        ).updateDriver(newDriver);
+                      }
+                      Navigator.pop(dialogContext);
+                    },
+                    child: Text('Save'),
                   ),
                 ],
-              ),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(dialogContext),
-                child: Text('Cancel'),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  final newDriver = DriverModel(
-                    id: driver?.id ?? FirebaseFirestore.instance.collection('opusers').doc().id,
-                    name: nameController.text,
-                    phone: phoneController.text,
-                    license: licenseController.text,
-                    busAssigned: busController.text.isEmpty ? null : busController.text,
-                    status: statusController.text,
-                    fleetOperatorId: widget.fleetOperatorId,
-                  );
-                  if (driver == null) {
-                    Provider.of<DriverProvider>(context, listen: false).addDriver(newDriver);
-                  } else {
-                    Provider.of<DriverProvider>(context, listen: false).updateDriver(newDriver);
-                  }
-                  Navigator.pop(dialogContext);
-                },
-                child: Text('Save'),
-              ),
-            ],
-          );
-        },
-      ),
+              );
+            },
+          ),
     );
   }
 
-  Widget _buildFormField(TextEditingController controller, String label, IconData icon) {
+  Widget _buildFormField(
+    TextEditingController controller,
+    String label,
+    IconData icon,
+  ) {
     return TextField(
       controller: controller,
       decoration: InputDecoration(
         labelText: label,
         prefixIcon: Icon(icon),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
       ),
     );
   }
@@ -127,32 +166,40 @@ class _FleetDriversScreenState extends State<FleetDriversScreen> {
   Widget build(BuildContext context) {
     final provider = Provider.of<DriverProvider>(context);
     final theme = Theme.of(context);
-    
+
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          'Manage Drivers',
-          style: TextStyle(fontWeight: FontWeight.w600),
+        title: Row(
+          children: [
+            Icon(Icons.person_2_rounded, color: theme.colorScheme.onPrimary),
+            const SizedBox(width: 8),
+            const Text('Driver Manager'),
+          ],
         ),
-        elevation: 0,
+        backgroundColor: theme.colorScheme.primaryContainer,
         actions: [
           IconButton(
-            icon: Icon(Icons.search),
-            onPressed: () {
-              // Implement search functionality
-            },
+            icon: Icon(Icons.refresh, color: theme.colorScheme.onPrimary),
+            onPressed: () => provider.loadDrivers(widget.fleetOperatorId),
           ),
           IconButton(
-            icon: Icon(Icons.filter_list),
+            icon: Icon(Icons.search, color: theme.colorScheme.onPrimary),
             onPressed: () {
-              // Implement filter functionality
+              // Implement search functionality if needed
             },
           ),
         ],
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.only(
+            bottomLeft: Radius.circular(20),
+            bottomRight: Radius.circular(20),
+          ),
+        ),
       ),
-      body: provider.drivers.isEmpty 
-          ? _buildEmptyState()
-          : _buildDriversList(provider, theme),
+      body:
+          provider.drivers.isEmpty
+              ? _buildEmptyState()
+              : _buildDriversList(provider, theme),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _showDriverForm(),
         label: Text('Add Driver'),
@@ -214,26 +261,28 @@ class _FleetDriversScreenState extends State<FleetDriversScreen> {
   void _confirmDelete(DriverModel driver) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Delete Driver'),
-        content: Text('Are you sure you want to delete ${driver.name}?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text('Cancel'),
+      builder:
+          (context) => AlertDialog(
+            title: Text('Delete Driver'),
+            content: Text('Are you sure you want to delete ${driver.name}?'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text('Cancel'),
+              ),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                onPressed: () {
+                  Provider.of<DriverProvider>(
+                    context,
+                    listen: false,
+                  ).deleteDriver(driver.id);
+                  Navigator.pop(context);
+                },
+                child: Text('Delete'),
+              ),
+            ],
           ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-            ),
-            onPressed: () {
-              Provider.of<DriverProvider>(context, listen: false).deleteDriver(driver.id);
-              Navigator.pop(context);
-            },
-            child: Text('Delete'),
-          ),
-        ],
-      ),
     );
   }
 }
@@ -254,17 +303,13 @@ class DriverCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isActive = driver.status.toLowerCase() == 'active';
-    final statusColor = isActive 
-        ? Colors.green 
-        : theme.colorScheme.error;
+    final statusColor = isActive ? Colors.green : theme.colorScheme.error;
 
     return Card(
       elevation: 4,
       clipBehavior: Clip.antiAlias,
       margin: EdgeInsets.zero,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -299,7 +344,10 @@ class DriverCard extends StatelessWidget {
                       Row(
                         children: [
                           Container(
-                            padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 2,
+                            ),
                             decoration: BoxDecoration(
                               color: statusColor.withOpacity(0.2),
                               borderRadius: BorderRadius.circular(12),
@@ -392,12 +440,7 @@ class DriverCard extends StatelessWidget {
               ),
             ),
             SizedBox(height: 2),
-            Text(
-              value,
-              style: TextStyle(
-                fontSize: 16,
-              ),
-            ),
+            Text(value, style: TextStyle(fontSize: 16)),
           ],
         ),
       ],
@@ -414,28 +457,32 @@ class DriverCard extends StatelessWidget {
           onDelete();
         }
       },
-      itemBuilder: (context) => [
-        PopupMenuItem(
-          value: 'edit',
-          child: Row(
-            children: [
-              Icon(Icons.edit, size: 20),
-              SizedBox(width: 8),
-              Text('Edit'),
-            ],
-          ),
-        ),
-        PopupMenuItem(
-          value: 'delete',
-          child: Row(
-            children: [
-              Icon(Icons.delete, size: 20, color: theme.colorScheme.error),
-              SizedBox(width: 8),
-              Text('Delete', style: TextStyle(color: theme.colorScheme.error)),
-            ],
-          ),
-        ),
-      ],
+      itemBuilder:
+          (context) => [
+            PopupMenuItem(
+              value: 'edit',
+              child: Row(
+                children: [
+                  Icon(Icons.edit, size: 20),
+                  SizedBox(width: 8),
+                  Text('Edit'),
+                ],
+              ),
+            ),
+            PopupMenuItem(
+              value: 'delete',
+              child: Row(
+                children: [
+                  Icon(Icons.delete, size: 20, color: theme.colorScheme.error),
+                  SizedBox(width: 8),
+                  Text(
+                    'Delete',
+                    style: TextStyle(color: theme.colorScheme.error),
+                  ),
+                ],
+              ),
+            ),
+          ],
     );
   }
 }

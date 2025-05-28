@@ -17,9 +17,7 @@ import 'providers/theme_provider.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   // Initialize Firebase first
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   // Initialize services after Firebase
   await AuthService.initialize();
@@ -37,25 +35,26 @@ class MainApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
         ChangeNotifierProvider(create: (_) => BusProvider()),
-        ChangeNotifierProvider(create: (_) => DriverProvider(),),
+        ChangeNotifierProvider(create: (_) => DriverProvider()),
         // Add other providers here if needed
       ],
       child: Consumer<ThemeProvider>(
         builder: (context, themeProvider, _) {
           // Access the current system UI style based on theme
-          final currentSystemUiStyle = themeProvider.isDarkMode
-              ? SystemUiOverlayStyle(
-                  statusBarColor: Colors.transparent,
-                  statusBarIconBrightness: Brightness.light,
-                  systemNavigationBarColor: Color(0xFF121212),
-                  systemNavigationBarIconBrightness: Brightness.light,
-                )
-              : SystemUiOverlayStyle(
-                  statusBarColor: Colors.transparent,
-                  statusBarIconBrightness: Brightness.dark,
-                  systemNavigationBarColor: lightYellowColor,
-                  systemNavigationBarIconBrightness: Brightness.dark,
-                );
+          final currentSystemUiStyle =
+              themeProvider.isDarkMode
+                  ? SystemUiOverlayStyle(
+                    statusBarColor: primaryColor,
+                    statusBarIconBrightness: Brightness.light,
+                    systemNavigationBarColor: Color(0xFF121212),
+                    systemNavigationBarIconBrightness: Brightness.light,
+                  )
+                  : SystemUiOverlayStyle(
+                    statusBarColor: primaryColor,
+                    statusBarIconBrightness: Brightness.light,
+                    systemNavigationBarColor: lightYellowColor,
+                    systemNavigationBarIconBrightness: Brightness.dark,
+                  );
 
           // Apply system UI style globally
           SystemChrome.setSystemUIOverlayStyle(currentSystemUiStyle);
@@ -63,7 +62,7 @@ class MainApp extends StatelessWidget {
           return MaterialApp(
             debugShowCheckedModeBanner: false,
             title: 'FlexiOps',
-            themeMode: themeProvider.themeMode,
+            themeMode: ThemeMode.light,
             theme: AppTheme.lightTheme,
             darkTheme: AppTheme.darkTheme,
             routes: {
@@ -72,16 +71,18 @@ class MainApp extends StatelessWidget {
               '/fleetOperatorDashboard': (_) => FleetOperatorDashboard(),
               '/ridePilotDashboard': (_) => DriverDashboard(),
             },
-            home: Consumer<AuthProvider>(builder: (context, authProvider, _) {
-              // Check if the user is logged in and navigate accordingly
-              if (authProvider.isAuthenticated) {
-                return authProvider.role == 'FleetOperator'
-                    ? FleetOperatorDashboard()
-                    : DriverDashboard();
-              } else {
-                return LoginScreen();
-              }
-            }),
+            home: Consumer<AuthProvider>(
+              builder: (context, authProvider, _) {
+                // Check if the user is logged in and navigate accordingly
+                if (authProvider.isAuthenticated) {
+                  return authProvider.role == 'FleetOperator'
+                      ? FleetOperatorDashboard()
+                      : DriverDashboard();
+                } else {
+                  return LoginScreen();
+                }
+              },
+            ),
           );
         },
       ),
@@ -95,7 +96,10 @@ class PlaceholderScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(appBar: AppBar(title: Text(title)), body: Center(child: Text(title)));
+    return Scaffold(
+      appBar: AppBar(title: Text(title)),
+      body: Center(child: Text(title)),
+    );
   }
 }
 

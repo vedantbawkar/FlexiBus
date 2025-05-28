@@ -15,6 +15,7 @@ class AppTheme {
     scaffoldBackgroundColor: lightYellowColor,
     colorScheme: ColorScheme.light(
       primary: primaryColor,
+      primaryContainer: const Color.fromARGB(255, 65, 11, 101),
       onPrimary: Colors.white,
       secondary: burgundyColor,
       onSecondary: Colors.white,
@@ -51,9 +52,7 @@ class AppTheme {
         backgroundColor: burgundyColor,
         foregroundColor: Colors.white,
         padding: EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),
     ),
     outlinedButtonTheme: OutlinedButtonThemeData(
@@ -61,9 +60,7 @@ class AppTheme {
         foregroundColor: primaryColor,
         side: BorderSide(color: primaryColor),
         padding: EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),
     ),
     textButtonTheme: TextButtonThemeData(
@@ -95,10 +92,7 @@ class AppTheme {
       thickness: 1,
       space: 24,
     ),
-    iconTheme: IconThemeData(
-      color: primaryColor,
-      size: 24,
-    ),
+    iconTheme: IconThemeData(color: primaryColor, size: 24),
     chipTheme: ChipThemeData(
       backgroundColor: lightCoralColor.withOpacity(0.7),
       labelStyle: TextStyle(color: primaryColor),
@@ -149,9 +143,7 @@ class AppTheme {
         backgroundColor: burgundyColor.withOpacity(0.9),
         foregroundColor: lightYellowColor,
         padding: EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),
     ),
     outlinedButtonTheme: OutlinedButtonThemeData(
@@ -159,9 +151,7 @@ class AppTheme {
         foregroundColor: lightYellowColor,
         side: BorderSide(color: lightYellowColor.withOpacity(0.8)),
         padding: EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),
     ),
     textButtonTheme: TextButtonThemeData(
@@ -193,10 +183,7 @@ class AppTheme {
       thickness: 1,
       space: 24,
     ),
-    iconTheme: IconThemeData(
-      color: lightYellowColor,
-      size: 24,
-    ),
+    iconTheme: IconThemeData(color: lightYellowColor, size: 24),
     chipTheme: ChipThemeData(
       backgroundColor: Color(0xFF2A2A2A),
       labelStyle: TextStyle(color: lightYellowColor),

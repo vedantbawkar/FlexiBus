@@ -14,13 +14,16 @@ class BusService {
       throw Exception("Error adding bus: $e");
     }
   }
-  
 
   // Fetch all buses
-  Future<List<Bus>> fetchAllBuses() async {
+  Future<List<Bus>> fetchAllBuses(String fleetOperatorId) async {
     try {
-      final querySnapshot = await _busRef.get();
+      final querySnapshot =
+          await _busRef
+              .where('fleetOperatorId', isEqualTo: fleetOperatorId)
+              .get();
       return querySnapshot.docs
+          .where((doc) => doc.exists)
           .map((doc) => Bus.fromMap(doc.data() as Map<String, dynamic>, doc.id))
           .toList();
     } catch (e) {

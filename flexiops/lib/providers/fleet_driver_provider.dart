@@ -1,6 +1,6 @@
 // providers/driver_provider.dart
 import 'package:flexiops/models/driver.dart';
-import 'package:flexiops/services/fleet_driver_service.dart';
+import 'package:flexiops/services/driver_service.dart';
 import 'package:flutter/material.dart';
 
 class DriverProvider with ChangeNotifier {
