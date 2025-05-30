@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flexiops/models/driver.dart';
-import 'package:flexiops/providers/fleet_driver_provider.dart';
+import 'package:flexiops/providers/operator_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
