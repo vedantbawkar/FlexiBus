@@ -97,11 +97,17 @@ class _WalletScreenState extends State<WalletScreen> {
                     const SizedBox(width: 10),
                     Expanded(
                       child: ElevatedButton(
-                        onPressed:
-                            () => _processTransaction(
-                              type,
-                              amountController.text,
-                            ),
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                          if (amountController.text.isEmpty) {
+                            _showSnackBar(
+                              'Transaction was not processed as no amount was entered.',
+                              Colors.red,
+                            );
+                            return;
+                          }
+                          _processTransaction(type, amountController.text);
+                        },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: gradient.colors.last,
                         ),

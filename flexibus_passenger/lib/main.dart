@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
 import 'package:flexibus_passenger/screens/auth/login_screen.dart';
+import 'package:flexibus_passenger/screens/routes/route_details_screen.dart';
 import 'firebase_options.dart';
 
 void main() async {
@@ -43,11 +44,17 @@ class FlexiBusApp extends StatelessWidget {
       child: MaterialApp(
         title: 'FlexiBus - Hop on. Ride smart',
         debugShowCheckedModeBanner: false,
+        routes: {
+          '/route-details': (context) {
+            final args = ModalRoute.of(context)!.settings.arguments as String;
+            return RouteDetailsScreen(routeId: args);
+          },
+        },
         home: Consumer<AuthProvider>(
           builder: (context, authProvider, _) {
             // Check if the user is logged in and navigate accordingly
             if (authProvider.isAuthenticated) {
-              return HomeScreen();
+              return const HomeScreen();
             } else {
               return const LoginScreen(); // Replace with your login screen
             }

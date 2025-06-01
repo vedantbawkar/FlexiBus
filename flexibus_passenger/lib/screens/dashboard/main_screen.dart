@@ -1,4 +1,7 @@
 import 'package:flexibus_passenger/screens/dashboard/home_screen.dart';
+import 'package:flexibus_passenger/screens/dashboard/custom_footer.dart';
+import 'package:flexibus_passenger/screens/dashboard/buses_around_you.dart';
+import 'package:flexibus_passenger/screens/dashboard/popular_routes.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -57,6 +60,8 @@ class MainScreen extends StatelessWidget {
         return Scaffold(
           backgroundColor: Colors.white,
 
+          // Add this to your existing MainScreen.dart file
+          // Replace the existing body section with this updated version
           body: SingleChildScrollView(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -162,7 +167,7 @@ class MainScreen extends StatelessWidget {
                             MaterialPageRoute(
                               builder:
                                   (_) => const SubscriptionScreen(
-                                    showAppBar: true,
+                                    // showAppBar: true,
                                   ),
                             ),
                           );
@@ -186,6 +191,12 @@ class MainScreen extends StatelessWidget {
                     ],
                   ),
                 ),
+                const SizedBox(height: 30),
+
+                const BusesAroundYouSection(),
+                const SizedBox(height: 30),
+
+                const PopularRoutesSection(),
                 const SizedBox(height: 30),
 
                 // Account Management Section
@@ -239,9 +250,6 @@ class MainScreen extends StatelessWidget {
                                     ),
                                   )
                                   as Route<Object?>,
-                              //   MaterialPageRoute(
-                              //   builder: (_) => const SettingsScreen(),
-                              // ),
                             );
                           },
                         ),
@@ -257,6 +265,9 @@ class MainScreen extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 30),
+
+                // Add the Custom Footer here
+                const CustomFooter(),
               ],
             ),
           ),
