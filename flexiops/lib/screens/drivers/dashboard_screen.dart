@@ -1,8 +1,8 @@
 // screens/driver_dashboard.dart
 import 'package:flexiops/configs/theme.dart';
-import 'package:flexiops/screens/ride/ride_notification_screen.dart';
-import 'package:flexiops/screens/ride/ride_profile_screen.dart';
-import 'package:flexiops/screens/ride/ride_today_screen.dart';
+import 'package:flexiops/screens/drivers/notification_screen.dart';
+import 'package:flexiops/screens/drivers/profile_screen.dart';
+import 'package:flexiops/screens/drivers/today_screen.dart';
 import 'package:flutter/material.dart';
 
 

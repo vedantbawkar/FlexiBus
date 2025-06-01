@@ -1,10 +1,10 @@
 // screens/fleet_operator_dashboard.dart
 import 'package:flexiops/configs/theme.dart';
 import 'package:flexiops/providers/auth_provider.dart';
-import 'package:flexiops/screens/fleet/fleet_drivers_screen.dart';
-import 'package:flexiops/screens/fleet/fleet_profile_screen.dart';
-import 'package:flexiops/screens/fleet/fleet_screen.dart';
-import 'package:flexiops/screens/fleet/fleet_reports_screen.dart';
+import 'package:flexiops/screens/operator/drivers_screen.dart';
+import 'package:flexiops/screens/operator/profile_screen.dart';
+import 'package:flexiops/screens/operator/busses_screen.dart';
+import 'package:flexiops/screens/operator/reports_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
