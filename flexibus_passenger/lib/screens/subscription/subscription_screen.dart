@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:intl/intl.dart';
 
 class SubscriptionScreen extends StatefulWidget {
   const SubscriptionScreen({super.key});
@@ -98,6 +100,296 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
   }
 
   Widget _buildTicketCard() {
+    return StreamBuilder<DocumentSnapshot>(
+      stream:
+          FirebaseFirestore.instance
+              .collection('passengers')
+              .doc(FirebaseAuth.instance.currentUser?.uid)
+              .snapshots(),
+      builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          return _buildErrorState('Error loading tickets');
+        }
+
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return _buildLoadingState();
+        }
+
+        final userData = snapshot.data?.data() as Map<String, dynamic>?;
+        if (userData == null) return _buildEmptyState('No tickets found');
+
+        final tickets =
+            List<Map<String, dynamic>>.from(
+              userData['tickets_and_passes'] ?? [],
+            ).where((ticket) => ticket['type'] == 'ticket').toList();
+
+        if (tickets.isEmpty) return _buildEmptyState('No tickets found');
+
+        final now = DateTime.now();
+        final activeTickets =
+            tickets.where((ticket) {
+              final validTill = (ticket['valid_till'] as Timestamp).toDate();
+              return validTill.isAfter(now);
+            }).toList();
+
+        final expiredTickets =
+            tickets.where((ticket) {
+              final validTill = (ticket['valid_till'] as Timestamp).toDate();
+              return validTill.isBefore(now);
+            }).toList();
+
+        // Sort active and expired tickets by booked_at timestamp in descending order
+        activeTickets.sort((a, b) {
+          final aTime = (a['booked_at'] as Timestamp).toDate();
+          final bTime = (b['booked_at'] as Timestamp).toDate();
+          return bTime.compareTo(aTime); // Descending order (latest first)
+        });
+
+        expiredTickets.sort((a, b) {
+          final aTime = (a['booked_at'] as Timestamp).toDate();
+          final bTime = (b['booked_at'] as Timestamp).toDate();
+          return bTime.compareTo(aTime); // Descending order (latest first)
+        });
+
+        final ticketsToShow =
+            _selectedTicketFilter == 'Active' ? activeTickets : expiredTickets;
+
+        if (ticketsToShow.isEmpty) {
+          return _buildEmptyState(
+            _selectedTicketFilter == 'Active'
+                ? 'No active tickets'
+                : 'No expired tickets',
+          );
+        }
+
+        return ListView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: ticketsToShow.length,
+          itemBuilder: (context, index) {
+            final ticket = ticketsToShow[index];
+            return _buildSingleTicket(ticket);
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildSingleTicket(Map<String, dynamic> ticket) {
+    final validTill = (ticket['valid_till'] as Timestamp).toDate();
+    final bookedAt = (ticket['booked_at'] as Timestamp).toDate();
+    final isExpired = validTill.isBefore(DateTime.now());
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16.0),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16.0),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.08),
+            spreadRadius: 0,
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(16.0),
+            decoration: BoxDecoration(
+              gradient: gradient,
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(16.0),
+              ),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  isExpired ? Icons.history : Icons.confirmation_num_outlined,
+                  color: Colors.white,
+                ),
+                const SizedBox(width: 12.0),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Route ${ticket['route_no']}',
+                        style: GoogleFonts.poppins(
+                          fontSize: 16.0,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                        ),
+                      ),
+                      Text(
+                        isExpired ? 'Expired' : 'Valid',
+                        style: GoogleFonts.poppins(
+                          fontSize: 12.0,
+                          color: Colors.white.withOpacity(0.9),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12.0,
+                    vertical: 6.0,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(20.0),
+                  ),
+                  child: Text(
+                    '₹${ticket['fare']}',
+                    style: GoogleFonts.poppins(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              children: [
+                _buildTicketInfo(
+                  'From',
+                  ticket['source'],
+                  Icons.location_on_outlined,
+                ),
+                const SizedBox(height: 12.0),
+                _buildTicketInfo(
+                  'To',
+                  ticket['destination'],
+                  Icons.location_on,
+                ),
+                const SizedBox(height: 12.0),
+                _buildTicketInfo('Time', ticket['timing'], Icons.access_time),
+                const Divider(height: 24.0),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    _buildTimestamp('Booked', bookedAt),
+                    _buildTimestamp('Valid Till', validTill),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTicketInfo(String label, String value, IconData icon) {
+    return Row(
+      children: [
+        Icon(icon, size: 18, color: gradient.colors[1]),
+        const SizedBox(width: 8),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              label,
+              style: GoogleFonts.poppins(fontSize: 12, color: Colors.black54),
+            ),
+            Text(
+              value,
+              style: GoogleFonts.poppins(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTimestamp(String label, DateTime timestamp) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: GoogleFonts.poppins(fontSize: 12, color: Colors.black54),
+        ),
+        Text(
+          DateFormat('dd MMM, hh:mm a').format(timestamp),
+          style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w500),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildLoadingState() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(24.0),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16.0),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.08),
+            spreadRadius: 0,
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          CircularProgressIndicator(color: gradient.colors[1]),
+          const SizedBox(height: 16.0),
+          Text(
+            "Loading tickets...",
+            style: GoogleFonts.poppins(fontSize: 14.0, color: Colors.black54),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildErrorState(String message) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(24.0),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16.0),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.08),
+            spreadRadius: 0,
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          Icon(Icons.error_outline, size: 40, color: Colors.red[400]),
+          const SizedBox(height: 16.0),
+          Text(
+            message,
+            style: GoogleFonts.poppins(
+              fontSize: 16.0,
+              fontWeight: FontWeight.w500,
+              color: Colors.red[400],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyState(String message) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(24.0),
@@ -131,9 +423,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
           ),
           const SizedBox(height: 16.0),
           Text(
-            _selectedTicketFilter == 'Active'
-                ? "No Active Tickets"
-                : "No Expired Tickets",
+            message,
             style: GoogleFonts.poppins(
               fontSize: 18.0,
               fontWeight: FontWeight.w600,
@@ -143,7 +433,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
           const SizedBox(height: 8.0),
           Text(
             _selectedTicketFilter == 'Active'
-                ? "Subscribe to a plan to get access to premium features"
+                ? "Book a ticket to see it here"
                 : "Your expired tickets will appear here",
             style: GoogleFonts.poppins(
               fontSize: 14.0,

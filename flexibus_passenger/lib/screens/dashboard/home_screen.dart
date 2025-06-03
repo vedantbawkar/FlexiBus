@@ -1,8 +1,9 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:cloud_firestore/cloud_firestore.dart'; // Import Firestore
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../profile/profile_screen.dart';
+import '../booking/book_ticket.dart';
 import '../subscription/subscription_screen.dart';
 import '../subscription/wallet_screen.dart';
 import 'main_screen.dart';
@@ -22,7 +23,7 @@ class _HomeScreenState extends State<HomeScreen> {
   );
 
   int _selectedIndex = 0;
-  bool hasBooked = false; // Variable to store the "hasBooked" attribute
+  bool hasBooked = false;
 
   static const List<Widget> _widgetOptions = <Widget>[
     MainScreen(),
@@ -35,7 +36,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    _fetchUserData(); // Fetch user data on initialization
+    _fetchUserData();
   }
 
   Future<void> _fetchUserData() async {
@@ -135,18 +136,7 @@ class BusBookingScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: <Widget>[
-          Icon(Icons.directions_bus, size: 80, color: Colors.grey[400]),
-          const SizedBox(height: 16),
-          Text('Bus Booking Feature', style: GoogleFonts.poppins(fontSize: 20)),
-          const SizedBox(height: 8),
-          const Text('Implementation in progress...'),
-        ],
-      ),
-    );
+    return const BookTicket();
   }
 }
 

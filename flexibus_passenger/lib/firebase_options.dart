@@ -85,4 +85,5 @@ class DefaultFirebaseOptions {
     storageBucket: 'flexibus-33b47.firebasestorage.app',
     measurementId: 'G-WZ0VGMZVR3',
   );
+
 }

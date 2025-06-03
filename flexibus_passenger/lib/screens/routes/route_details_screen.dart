@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../booking/book_ticket.dart'; // Add this import
 
 class RouteDetailsScreen extends StatefulWidget {
   final String routeId;
@@ -96,185 +97,199 @@ class _RouteDetailsScreenState extends State<RouteDetailsScreen> {
 
           final routeData = snapshot.data!.data() as Map<String, dynamic>;
 
-          return SingleChildScrollView(
-            physics: const BouncingScrollPhysics(),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Route Map Preview (placeholder)
-                Container(
-                  height: 200,
-                  width: double.infinity,
-                  decoration: BoxDecoration(gradient: widget.gradient),
-                  child: const Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.map, size: 64, color: Colors.white),
-                        Text(
-                          'Route Map Preview',
-                          style: TextStyle(color: Colors.white, fontSize: 18),
+          return Stack(
+            children: [
+              SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Route Map Preview (placeholder)
+                    Container(
+                      height: 200,
+                      width: double.infinity,
+                      decoration: BoxDecoration(gradient: widget.gradient),
+                      child: const Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.map, size: 64, color: Colors.white),
+                            Text(
+                              'Route Map Preview',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 18,
+                              ),
+                            ),
+                          ],
                         ),
-                      ],
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildSection(
+                            'Stops',
+                            _buildStopsSection(routeData['stops'] as List),
+                          ),
+                          const SizedBox(height: 24),
+                          _buildSection(
+                            'Fare Details',
+                            Column(
+                              children: [
+                                _buildFareDetail(
+                                  'Base Fare',
+                                  '₹${routeData['baseFare']}',
+                                ),
+                                const SizedBox(height: 8),
+                                _buildFareDetail(
+                                  'Maximum Fare',
+                                  '₹${routeData['maxFare']}',
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                          _buildSection(
+                            'Schedule',
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Operating Days',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Wrap(
+                                  spacing: 8,
+                                  children:
+                                      (routeData['weekdays'] as List)
+                                          .map(
+                                            (day) => Chip(
+                                              label: Text(
+                                                day,
+                                                style: GoogleFonts.poppins(
+                                                  color: Colors.white,
+                                                ),
+                                              ),
+                                              backgroundColor:
+                                                  widget.gradient.colors[1],
+                                            ),
+                                          )
+                                          .toList(),
+                                ),
+                                const SizedBox(height: 16),
+                                Text(
+                                  'Timings',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Wrap(
+                                  spacing: 8,
+                                  children:
+                                      (routeData['timings'] as List)
+                                          .map(
+                                            (time) => Chip(
+                                              label: Text(
+                                                time,
+                                                style: GoogleFonts.poppins(
+                                                  color:
+                                                      widget.gradient.colors[1],
+                                                ),
+                                              ),
+                                              backgroundColor: widget
+                                                  .gradient
+                                                  .colors[1]
+                                                  .withOpacity(0.1),
+                                              side: BorderSide(
+                                                color:
+                                                    widget.gradient.colors[1],
+                                              ),
+                                            ),
+                                          )
+                                          .toList(),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                          // Selection Summary
+                          if (selectedSourceIndex != null ||
+                              selectedDestinationIndex != null)
+                            _buildSelectionSummary(routeData['stops'] as List),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: 0,
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 10,
+                        offset: const Offset(0, -5),
+                      ),
+                    ],
+                  ),
+                  child: ElevatedButton(
+                    onPressed:
+                        isBookingEnabled
+                            ? () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder:
+                                      (context) => BookTicket(
+                                        routeNumber: routeData['routeNumber'],
+                                        source:
+                                            routeData['stops'][selectedSourceIndex!],
+                                        destination:
+                                            routeData['stops'][selectedDestinationIndex!],
+                                      ),
+                                ),
+                              );
+                            }
+                            : null,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor:
+                          isBookingEnabled
+                              ? widget.gradient.colors[1]
+                              : Colors.grey[400],
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: Text(
+                      'Book This Route',
+                      style: GoogleFonts.poppins(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
                     ),
                   ),
                 ),
-                Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildSection(
-                        'Stops',
-                        _buildStopsSection(routeData['stops'] as List),
-                      ),
-                      const SizedBox(height: 24),
-                      _buildSection(
-                        'Fare Details',
-                        Column(
-                          children: [
-                            _buildFareDetail(
-                              'Base Fare',
-                              '₹${routeData['baseFare']}',
-                            ),
-                            const SizedBox(height: 8),
-                            _buildFareDetail(
-                              'Maximum Fare',
-                              '₹${routeData['maxFare']}',
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-                      _buildSection(
-                        'Schedule',
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Operating Days',
-                              style: GoogleFonts.poppins(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Wrap(
-                              spacing: 8,
-                              children:
-                                  (routeData['weekdays'] as List)
-                                      .map(
-                                        (day) => Chip(
-                                          label: Text(
-                                            day,
-                                            style: GoogleFonts.poppins(
-                                              color: Colors.white,
-                                            ),
-                                          ),
-                                          backgroundColor:
-                                              widget.gradient.colors[1],
-                                        ),
-                                      )
-                                      .toList(),
-                            ),
-                            const SizedBox(height: 16),
-                            Text(
-                              'Timings',
-                              style: GoogleFonts.poppins(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Wrap(
-                              spacing: 8,
-                              children:
-                                  (routeData['timings'] as List)
-                                      .map(
-                                        (time) => Chip(
-                                          label: Text(
-                                            time,
-                                            style: GoogleFonts.poppins(
-                                              color: widget.gradient.colors[1],
-                                            ),
-                                          ),
-                                          backgroundColor: widget
-                                              .gradient
-                                              .colors[1]
-                                              .withOpacity(0.1),
-                                          side: BorderSide(
-                                            color: widget.gradient.colors[1],
-                                          ),
-                                        ),
-                                      )
-                                      .toList(),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-                      // Selection Summary
-                      if (selectedSourceIndex != null ||
-                          selectedDestinationIndex != null)
-                        _buildSelectionSummary(routeData['stops'] as List),
-                    ],
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           );
         },
-      ),
-      bottomNavigationBar: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 10,
-              offset: const Offset(0, -5),
-            ),
-          ],
-        ),
-        child: ElevatedButton(
-          onPressed:
-              isBookingEnabled
-                  ? () {
-                    // TODO: Implement booking functionality
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          'Booking feature coming soon!',
-                          style: GoogleFonts.poppins(color: Colors.white),
-                        ),
-                        backgroundColor: widget.gradient.colors[1],
-                        behavior: SnackBarBehavior.floating,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        margin: const EdgeInsets.all(16),
-                      ),
-                    );
-                  }
-                  : null,
-          style: ElevatedButton.styleFrom(
-            backgroundColor:
-                isBookingEnabled ? widget.gradient.colors[1] : Colors.grey[400],
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-          ),
-          child: Text(
-            'Book This Route',
-            style: GoogleFonts.poppins(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-              color: Colors.white,
-            ),
-          ),
-        ),
       ),
     );
   }

@@ -111,11 +111,9 @@ class WelcomeScreen extends StatelessWidget {
                           side: const BorderSide(color: Colors.white),
                         ),
                       ).copyWith(
-                        foregroundColor: MaterialStateProperty.all(
-                          Colors.white,
-                        ),
+                        foregroundColor: WidgetStateProperty.all(Colors.white),
                         backgroundColor:
-                            MaterialStateProperty.resolveWith<Color?>((states) {
+                            WidgetStateProperty.resolveWith<Color?>((states) {
                               return null; // no solid background
                             }),
                       ),

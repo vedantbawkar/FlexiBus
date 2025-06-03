@@ -33,6 +33,10 @@ class MainScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+    } else {
+      return const LoginScreen();
+    }
 
     return FutureBuilder<DocumentSnapshot>(
       future:
