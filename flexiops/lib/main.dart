@@ -3,6 +3,7 @@ import 'package:flexiops/configs/theme.dart';
 import 'package:flexiops/firebase_options.dart';
 import 'package:flexiops/providers/bus_provider.dart';
 import 'package:flexiops/providers/operator_provider.dart';
+import 'package:flexiops/screens/drivers/pending_approval_screen.dart';
 import 'package:flexiops/screens/operator/dashboard_screen.dart';
 import 'package:flexiops/screens/auth/login_screen.dart';
 import 'package:flexiops/screens/auth/register_screen.dart';
@@ -75,9 +76,16 @@ class MainApp extends StatelessWidget {
               builder: (context, authProvider, _) {
                 // Check if the user is logged in and navigate accordingly
                 if (authProvider.isAuthenticated) {
-                  return authProvider.role == 'FleetOperator'
-                      ? FleetOperatorDashboard()
-                      : DriverDashboard();
+                  print(authProvider.role);
+                  if (authProvider.role == 'FleetOperator') {
+                    return FleetOperatorDashboard();
+                  } else if (authProvider.role == 'RidePilot') {
+                    return DriverDashboard();
+                  } 
+                  // else {
+                  //   return PendingApprovalScreen();
+                  // }
+                  // return PendingApprovalScreen();
                 } else {
                   return LoginScreen();
                 }
@@ -102,75 +110,3 @@ class PlaceholderScreen extends StatelessWidget {
     );
   }
 }
-
-
-// // main.dart
-// import 'package:firebase_core/firebase_core.dart';
-// import 'package:flexiops/configs/theme.dart';
-// import 'package:flexiops/firebase_options.dart';
-// import 'package:flexiops/screens/fleet/fleet_dashboard_screen.dart';
-// import 'package:flexiops/screens/auth/login_screen.dart';
-// import 'package:flexiops/screens/auth/register_screen.dart';
-// import 'package:flexiops/screens/ride/ride_dashboard_screen.dart';
-// import 'package:flexiops/services/auth_service.dart';
-// import 'package:flutter/material.dart';
-// import 'package:flutter/services.dart';
-// import 'package:provider/provider.dart';
-
-// import 'providers/auth_provider.dart';
-
-
-// void main() async {
-//   WidgetsFlutterBinding.ensureInitialized();
-//     // Initialize Firebase first
-//   await Firebase.initializeApp(
-//     options: DefaultFirebaseOptions.currentPlatform,
-//   );
-
-//   // Initialize services after Firebase
-//   await AuthService.initialize();
-
-//   runApp(const MainApp());
-// }
-
-// class MainApp extends StatelessWidget {
-//   const MainApp({super.key});
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return MultiProvider(
-//       providers: [
-//         ChangeNotifierProvider(create: (_) => AuthProvider()),
-//         // Add other providers here if needed
-//       ],
-//       child: MaterialApp(
-//         debugShowCheckedModeBanner: false,
-//         title: 'FlexiOps',
-//         initialRoute: '/login',
-//          themeMode: ThemeMode.system, // Automatically use system theme
-//         routes: {
-//           '/login': (context) =>  AnnotatedRegion<SystemUiOverlayStyle>(
-//           value: SystemUiOverlayStyle(statusBarColor: primaryColor),
-//           child: LoginScreen(),
-//         ),
-//           '/register': (context) => AnnotatedRegion<SystemUiOverlayStyle>(
-//           value: SystemUiOverlayStyle(statusBarColor: primaryColor),
-//           child: RegisterScreen(),
-//         ),
-//           '/fleetOperatorDashboard': (_) => FleetOperatorDashboard(),
-//           '/ridePilotDashboard': (_) => DriverDashboard(),
-//         },
-//       ),
-//     );
-//   }
-// }
-
-// class PlaceholderScreen extends StatelessWidget {
-//   final String title;
-//   const PlaceholderScreen({super.key, required this.title});
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(appBar: AppBar(title: Text(title)), body: Center(child: Text(title)));
-//   }
-// }

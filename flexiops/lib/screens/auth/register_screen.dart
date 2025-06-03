@@ -1,4 +1,5 @@
 import 'package:flexiops/configs/theme.dart';
+import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
@@ -12,12 +13,19 @@ class RegisterScreen extends StatefulWidget {
 }
 
 class _RegisterScreenState extends State<RegisterScreen> {
+  final nameController = TextEditingController();
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
   final confirmPasswordController = TextEditingController();
-  final nameController = TextEditingController();
-  final fleetOperatorIdController = TextEditingController();  // Add this controller for fleetOperatorId
-
+  final fleetOperatorIdController = TextEditingController();
+  final phoneController = TextEditingController();
+  final companyNameController = TextEditingController();
+  final addressController = TextEditingController();
+  final ageController = TextEditingController();
+  final genderController = TextEditingController();
+  String? selectedGender;
+  final dobController = TextEditingController();
+  DateTime? selectedDob;
   bool _isPasswordVisible = false;
   bool _isConfirmPasswordVisible = false;
   bool _agreeToTerms = false;
@@ -76,7 +84,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                     const Text(
+                    const Text(
                       "Register",
                       style: TextStyle(
                         fontSize: 24,
@@ -86,13 +94,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     const SizedBox(height: 6),
                     Text(
                       "Welcome to FlexiOps! Please fill in the details below to create your account.",
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey[600],
-                      ),
+                      style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                     ),
                     const SizedBox(height: 32),
                     // Name Field
+                    // Full Name
                     TextField(
                       controller: nameController,
                       keyboardType: TextInputType.name,
@@ -100,7 +106,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       decoration: InputDecoration(
                         labelText: 'Full Name',
                         hintText: 'Enter your full name',
-                        prefixIcon: Icon(Icons.person_outline, color: primaryColor),
+                        prefixIcon: Icon(
+                          Icons.person_outline,
+                          color: primaryColor,
+                        ),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide(color: Colors.grey.shade300),
@@ -114,6 +123,155 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         fillColor: Colors.grey.shade50,
                       ),
                     ),
+
+                    SizedBox(height: 16),
+
+                    // DOB controller
+                    GestureDetector(
+                      onTap: () async {
+                        DateTime? picked = await showDatePicker(
+                          context: context,
+                          initialDate: DateTime(2000),
+                          firstDate: DateTime(1900),
+                          lastDate: DateTime.now(),
+                        );
+                        if (picked != null) {
+                          setState(() {
+                            selectedDob = picked;
+                            dobController.text = DateFormat(
+                              'yyyy-MM-dd',
+                            ).format(picked);
+                          });
+                        }
+                      },
+                      child: AbsorbPointer(
+                        child: TextField(
+                          controller: dobController,
+                          decoration: InputDecoration(
+                            labelText: 'Date of Birth',
+                            hintText: 'Select your DOB',
+                            prefixIcon: Icon(
+                              Icons.cake_outlined,
+                              color: primaryColor,
+                            ),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(
+                                color: Colors.grey.shade300,
+                              ),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(
+                                color: primaryColor,
+                                width: 2,
+                              ),
+                            ),
+                            labelStyle: TextStyle(color: primaryColor),
+                            filled: true,
+                            fillColor: Colors.grey.shade50,
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    SizedBox(height: 16),
+
+                    // Gender
+                    DropdownButtonFormField<String>(
+                      value: selectedGender,
+                      items:
+                          ['Male', 'Female', 'Other'].map((gender) {
+                            return DropdownMenuItem(
+                              value: gender,
+                              child: Text(gender),
+                            );
+                          }).toList(),
+                      onChanged: (value) {
+                        setState(() {
+                          selectedGender = value;
+                          genderController.text = value!;
+                        });
+                      },
+                      decoration: InputDecoration(
+                        labelText: 'Gender',
+                        prefixIcon: Icon(
+                          Icons.wc_outlined,
+                          color: primaryColor,
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(color: Colors.grey.shade300),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(color: primaryColor, width: 2),
+                        ),
+                        labelStyle: TextStyle(color: primaryColor),
+                        filled: true,
+                        fillColor: Colors.grey.shade50,
+                      ),
+                    ),
+
+                    SizedBox(height: 16),
+
+                    // Phone Number Field
+                    TextField(
+                      controller: phoneController,
+                      keyboardType: TextInputType.number,
+                      maxLength: 10,
+                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                      decoration: InputDecoration(
+                        labelText: 'Phone Number',
+                        hintText: 'Enter 10-digit phone number',
+                        prefixIcon: Icon(
+                          Icons.phone_outlined,
+                          color: primaryColor,
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(color: Colors.grey.shade300),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(color: primaryColor, width: 2),
+                        ),
+                        labelStyle: TextStyle(color: primaryColor),
+                        filled: true,
+                        fillColor: Colors.grey.shade50,
+                        counterText: '', // Hides character counter
+                      ),
+                    ),
+
+                    SizedBox(height: 16),
+
+                    // Address
+                    TextField(
+                      controller: addressController,
+                      keyboardType: TextInputType.streetAddress,
+                      textCapitalization: TextCapitalization.sentences,
+                      maxLines: 2,
+                      decoration: InputDecoration(
+                        labelText: 'Address',
+                        hintText: 'Enter your full address',
+                        prefixIcon: Icon(
+                          Icons.home_outlined,
+                          color: primaryColor,
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(color: Colors.grey.shade300),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(color: primaryColor, width: 2),
+                        ),
+                        labelStyle: TextStyle(color: primaryColor),
+                        filled: true,
+                        fillColor: Colors.grey.shade50,
+                      ),
+                    ),
+
                     const SizedBox(height: 16),
 
                     // Email Field
@@ -123,7 +281,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       decoration: InputDecoration(
                         labelText: 'Email Address',
                         hintText: 'Enter your email address',
-                        prefixIcon: Icon(Icons.email_outlined, color: primaryColor),
+                        prefixIcon: Icon(
+                          Icons.email_outlined,
+                          color: primaryColor,
+                        ),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide(color: Colors.grey.shade300),
@@ -146,11 +307,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       decoration: InputDecoration(
                         labelText: 'Password',
                         hintText: 'Create a password',
-                        prefixIcon: Icon(Icons.lock_outline, color: primaryColor),
+                        prefixIcon: Icon(
+                          Icons.lock_outline,
+                          color: primaryColor,
+                        ),
                         suffixIcon: IconButton(
                           icon: Icon(
-                            _isPasswordVisible 
-                                ? Icons.visibility_off_outlined 
+                            _isPasswordVisible
+                                ? Icons.visibility_off_outlined
                                 : Icons.visibility_outlined,
                             color: primaryColor,
                           ),
@@ -183,17 +347,21 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       decoration: InputDecoration(
                         labelText: 'Confirm Password',
                         hintText: 'Confirm your password',
-                        prefixIcon: Icon(Icons.lock_outline, color: primaryColor),
+                        prefixIcon: Icon(
+                          Icons.lock_outline,
+                          color: primaryColor,
+                        ),
                         suffixIcon: IconButton(
                           icon: Icon(
-                            _isConfirmPasswordVisible 
-                                ? Icons.visibility_off_outlined 
+                            _isConfirmPasswordVisible
+                                ? Icons.visibility_off_outlined
                                 : Icons.visibility_outlined,
                             color: primaryColor,
                           ),
                           onPressed: () {
                             setState(() {
-                              _isConfirmPasswordVisible = !_isConfirmPasswordVisible;
+                              _isConfirmPasswordVisible =
+                                  !_isConfirmPasswordVisible;
                             });
                           },
                         ),
@@ -224,11 +392,23 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         child: DropdownButton<String>(
                           isExpanded: true,
                           value: authProvider.role,
-                          hint: Text('Select Role', style: TextStyle(color: Colors.grey[600])),
-                          icon: Icon(Icons.arrow_drop_down, color: primaryColor),
+                          hint: Text(
+                            'Select Role',
+                            style: TextStyle(color: Colors.grey[600]),
+                          ),
+                          icon: Icon(
+                            Icons.arrow_drop_down,
+                            color: primaryColor,
+                          ),
                           items: const [
-                            DropdownMenuItem(value: 'FleetOperator', child: Text('Fleet Operator')),
-                            DropdownMenuItem(value: 'RidePilot', child: Text('Ride Pilot')),
+                            DropdownMenuItem(
+                              value: 'FleetOperator',
+                              child: Text('Fleet Operator'),
+                            ),
+                            DropdownMenuItem(
+                              value: 'RidePilot',
+                              child: Text('Ride Pilot'),
+                            ),
                           ],
                           onChanged: (value) {
                             setState(() {
@@ -241,21 +421,27 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     const SizedBox(height: 16),
 
                     // Conditionally Display FleetOperatorId Field
-                    if (authProvider.role == 'RidePilot') 
+                    if (authProvider.role == 'RidePilot')
                       TextField(
                         controller: fleetOperatorIdController,
                         keyboardType: TextInputType.text,
                         decoration: InputDecoration(
                           labelText: 'Fleet Operator ID',
                           hintText: 'Enter Fleet Operator ID',
-                          prefixIcon: Icon(Icons.directions_bus_rounded, color: primaryColor),
+                          prefixIcon: Icon(
+                            Icons.directions_bus_rounded,
+                            color: primaryColor,
+                          ),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
                             borderSide: BorderSide(color: Colors.grey.shade300),
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(color: primaryColor, width: 2),
+                            borderSide: BorderSide(
+                              color: primaryColor,
+                              width: 2,
+                            ),
                           ),
                           labelStyle: TextStyle(color: primaryColor),
                           filled: true,
@@ -284,7 +470,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           child: RichText(
                             text: TextSpan(
                               text: "I agree to the ",
-                              style: TextStyle(color: Colors.grey[600], fontSize: 14),
+                              style: TextStyle(
+                                color: Colors.grey[600],
+                                fontSize: 14,
+                              ),
                               children: [
                                 TextSpan(
                                   text: "Terms & Conditions",
@@ -296,7 +485,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 ),
                                 TextSpan(
                                   text: " and ",
-                                  style: TextStyle(color: Colors.grey[600], fontSize: 14),
+                                  style: TextStyle(
+                                    color: Colors.grey[600],
+                                    fontSize: 14,
+                                  ),
                                 ),
                                 TextSpan(
                                   text: "Privacy Policy",
@@ -322,11 +514,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         onPressed: () async {
                           // Validation checks
                           if (!_agreeToTerms) {
-                            _showErrorSnackBar(context, 'Please agree to the Terms & Conditions');
+                            _showErrorSnackBar(
+                              context,
+                              'Please agree to the Terms & Conditions',
+                            );
                             return;
                           }
-                          if (passwordController.text != confirmPasswordController.text) {
-                            _showErrorSnackBar(context, 'Passwords do not match');
+                          if (passwordController.text !=
+                              confirmPasswordController.text) {
+                            _showErrorSnackBar(
+                              context,
+                              'Passwords do not match',
+                            );
                             return;
                           }
                           if (authProvider.role == null) {
@@ -336,30 +535,46 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                           try {
                             await authProvider.register(
+                              nameController.text.trim(),
                               emailController.text.trim(),
                               passwordController.text.trim(),
-                              authProvider.role ?? 'FleetOperator',
-                              fleetOperatorId: authProvider.role == 'RidePilot' ? fleetOperatorIdController.text.trim() : null,  // Pass the fleetOperatorId if RidePilot
+                              authProvider.role ?? 'RidePilot',
+                              authProvider.role == 'RidePilot'
+                                  ? fleetOperatorIdController.text.trim()
+                                  : null,
+                              phoneController.text.trim(),
+                              addressController.text.trim(),
+                              selectedGender ?? genderController.text.trim(),
+                              dobController.text.trim(),
                             );
-                            
+
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                content: const Text('Registered successfully! Please login'),
+                                content: const Text(
+                                  'Registered successfully! Please login to continue',
+                                ),
                                 backgroundColor: Colors.green[700],
                                 behavior: SnackBarBehavior.floating,
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
                                 margin: const EdgeInsets.all(10),
-                              )
+                              ),
                             );
-                            
+
                             Navigator.pushReplacementNamed(context, '/login');
                           } catch (e) {
-                            _showErrorSnackBar(context, 'Registration failed: $e');
+                            _showErrorSnackBar(
+                              context,
+                              'Registration failed: $e',
+                            );
                           }
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: primaryColor,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
                         ),
                         child: const Text(
                           'Register',
@@ -374,28 +589,29 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ),
               ),
               // Login Link
-                    Center(
-                      child: TextButton(
-                        onPressed: () => Navigator.pushReplacementNamed(context, '/login'),
-                        child: RichText(
-                          text: TextSpan(
-                            text: "Already have an account? ",
-                            style: TextStyle(color: Colors.grey[700], fontSize: 14),
-                            children: [
-                              TextSpan(
-                                text: "Login",
-                                style: TextStyle(
-                                  color: burgundyColor,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 14,
-                                ),
-                              ),
-                            ],
+              Center(
+                child: TextButton(
+                  onPressed:
+                      () => Navigator.pushReplacementNamed(context, '/login'),
+                  child: RichText(
+                    text: TextSpan(
+                      text: "Already have an account? ",
+                      style: TextStyle(color: Colors.grey[700], fontSize: 14),
+                      children: [
+                        TextSpan(
+                          text: "Login",
+                          style: TextStyle(
+                            color: burgundyColor,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
                           ),
                         ),
-                      ),
+                      ],
                     ),
-                    SizedBox(height: 20),
+                  ),
+                ),
+              ),
+              SizedBox(height: 20),
             ],
           ),
         ),

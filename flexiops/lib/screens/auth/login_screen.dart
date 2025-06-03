@@ -1,5 +1,6 @@
 // screens/login_screen.dart
 import 'package:flexiops/configs/theme.dart';
+import 'package:flexiops/main.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
@@ -84,10 +85,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     const SizedBox(height: 6),
                     Text(
                       "Welcome back! Please login to continue",
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey[600],
-                      ),
+                      style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                     ),
                     const SizedBox(height: 32),
 
@@ -98,7 +96,10 @@ class _LoginScreenState extends State<LoginScreen> {
                       decoration: InputDecoration(
                         labelText: 'Email',
                         hintText: 'Enter your email',
-                        prefixIcon: Icon(Icons.email_outlined, color: primaryColor),
+                        prefixIcon: Icon(
+                          Icons.email_outlined,
+                          color: primaryColor,
+                        ),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide(color: Colors.grey.shade300),
@@ -121,11 +122,14 @@ class _LoginScreenState extends State<LoginScreen> {
                       decoration: InputDecoration(
                         labelText: 'Password',
                         hintText: 'Enter your password',
-                        prefixIcon: Icon(Icons.lock_outline, color: primaryColor),
+                        prefixIcon: Icon(
+                          Icons.lock_outline,
+                          color: primaryColor,
+                        ),
                         suffixIcon: IconButton(
                           icon: Icon(
-                            _isPasswordVisible 
-                                ? Icons.visibility_off_outlined 
+                            _isPasswordVisible
+                                ? Icons.visibility_off_outlined
                                 : Icons.visibility_outlined,
                             color: primaryColor,
                           ),
@@ -168,7 +172,10 @@ class _LoginScreenState extends State<LoginScreen> {
                                 borderRadius: BorderRadius.circular(4),
                               ),
                             ),
-                            const Text("Remember me", style: TextStyle(fontSize: 14)),
+                            const Text(
+                              "Remember me",
+                              style: TextStyle(fontSize: 14),
+                            ),
                           ],
                         ),
                         TextButton(
@@ -199,11 +206,23 @@ class _LoginScreenState extends State<LoginScreen> {
                         child: DropdownButton<String>(
                           isExpanded: true,
                           value: authProvider.role,
-                          hint: Text('Select Role', style: TextStyle(color: Colors.grey[600])),
-                          icon: Icon(Icons.arrow_drop_down, color: primaryColor),
+                          hint: Text(
+                            'Select Role',
+                            style: TextStyle(color: Colors.grey[600]),
+                          ),
+                          icon: Icon(
+                            Icons.arrow_drop_down,
+                            color: primaryColor,
+                          ),
                           items: const [
-                            DropdownMenuItem(value: 'FleetOperator', child: Text('Fleet Operator')),
-                            DropdownMenuItem(value: 'RidePilot', child: Text('Ride Pilot')),
+                            DropdownMenuItem(
+                              value: 'FleetOperator',
+                              child: Text('Fleet Operator'),
+                            ),
+                            DropdownMenuItem(
+                              value: 'RidePilot',
+                              child: Text('Ride Pilot'),
+                            ),
                           ],
                           onChanged: (value) {
                             setState(() {
@@ -222,22 +241,24 @@ class _LoginScreenState extends State<LoginScreen> {
                       child: ElevatedButton(
                         onPressed: () async {
                           try {
-                            await authProvider.login(emailController.text.trim(), passwordController.text.trim());
-                            final role = authProvider.role;
-                            if (role == 'FleetOperator') {
-                              Navigator.pushReplacementNamed(context, '/fleetOperatorDashboard');
-                            } else if (role == 'RidePilot') {
-                              Navigator.pushReplacementNamed(context, '/ridePilotDashboard');
-                            } else {
-                              _showErrorSnackBar(context, 'Please select a role to continue');
-                            }
+                            await authProvider.login(
+                              emailController.text.trim(),
+                              passwordController.text.trim(),
+                            );
+                            _showSuccessSnackBAr(context, 'Login Success');
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(builder: (context) => MainApp()),
+                            );
                           } catch (e) {
                             _showErrorSnackBar(context, 'Login failed: $e');
                           }
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: primaryColor,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
                           elevation: 2,
                         ),
                         child: const Text(
@@ -255,11 +276,15 @@ class _LoginScreenState extends State<LoginScreen> {
                     // Register Link
                     Center(
                       child: TextButton(
-                        onPressed: () => Navigator.pushNamed(context, '/register'),
+                        onPressed:
+                            () => Navigator.pushNamed(context, '/register'),
                         child: RichText(
                           text: TextSpan(
                             text: "Don't have an account? ",
-                            style: TextStyle(color: Colors.grey[700], fontSize: 14),
+                            style: TextStyle(
+                              color: Colors.grey[700],
+                              fontSize: 14,
+                            ),
                             children: [
                               TextSpan(
                                 text: "Register",
@@ -289,6 +314,18 @@ class _LoginScreenState extends State<LoginScreen> {
       SnackBar(
         content: Text(message),
         backgroundColor: burgundyColor,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        margin: const EdgeInsets.all(10),
+      ),
+    );
+  }
+
+  void _showSuccessSnackBAr(BuildContext context, String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.green,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         margin: const EdgeInsets.all(10),

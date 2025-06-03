@@ -8,12 +8,19 @@ class AuthService {
 
   Stream<User?> get authStateChanges => _auth.authStateChanges();
 
-    static Future<void> initialize() async {
+  static Future<void> initialize() async {
     // No special initialization needed for Firebase Auth
   }
 
-
-  Future<User?> register(String email, String password, String role) async {
+  Future<User?> registerOperator(
+    String name,
+    String email,
+    String password,
+    String phone,
+    String address,
+    String gender,
+    String dob,
+  ) async {
     try {
       final credential = await _auth.createUserWithEmailAndPassword(
         email: email,
@@ -22,9 +29,53 @@ class AuthService {
 
       final uid = credential.user?.uid;
       if (uid != null) {
-        await _firestore.collection('opusers').doc(uid).set({
+        await _firestore.collection('fleet_operators').doc(uid).set({
+          'name': name,
+          'gender': gender,
+          'dob': dob,
+          'phone': phone,
+          'address': address,
           'email': email,
-          'role': role,
+          'role': 'FleetOperator',
+          'status': 'pending',
+          'createdAt': FieldValue.serverTimestamp(),
+        });
+      }
+
+      return credential.user;
+    } on FirebaseAuthException catch (e) {
+      throw Exception('Registration failed: ${e.message}');
+    }
+  }
+
+  Future<User?> registerDriver(
+    String name,
+    String email,
+    String password,
+    String fleetOperatorId,
+    String phone,
+    String address,
+    String gender,
+    String dob,
+  ) async {
+    try {
+      final credential = await _auth.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+
+      final uid = credential.user?.uid;
+      if (uid != null) {
+        await _firestore.collection('ride_pilots').doc(uid).set({
+          'name': name,
+          'gender': gender,
+          'dob': dob,
+          'phone': phone,
+          'address': address,
+          'email': email,
+          'fleetOperatorId': fleetOperatorId,
+          'role': 'RidePilot',
+          'status': 'pending',
           'createdAt': FieldValue.serverTimestamp(),
         });
       }
@@ -51,15 +102,36 @@ class AuthService {
     await _auth.signOut();
   }
 
-  Future<String?> getUserRole(String uid) async {
+  Future<AuthUtils> getUserRole(String uid) async {
     try {
-      final doc = await _firestore.collection('opusers').doc(uid).get();
-      if (doc.exists && doc.data() != null) {
-        return doc.data()!['role'] as String?;
+      // Check in 'operators' collection
+      final operatorDoc =
+          await _firestore.collection('fleet_operators').doc(uid).get();
+      if (operatorDoc.exists && operatorDoc.data() != null) {
+        return AuthUtils(
+          'FleetOperator',
+          operatorDoc.data()!['status'] ?? "pending",
+        );
       }
-      return null;
+
+      // Check in 'drivers' collection
+      final driverDoc =
+          await _firestore.collection('ride_pilots').doc(uid).get();
+      if (driverDoc.exists && driverDoc.data() != null) {
+        return AuthUtils('RidePilot', driverDoc.data()!['status'] ?? "pending");
+      }
+
+      // If user not found in either collection
+      return AuthUtils("none", "pending");
     } catch (e) {
       throw Exception('Failed to fetch role: $e');
     }
   }
+}
+
+class AuthUtils {
+  String role;
+  String status;
+
+  AuthUtils(this.role, this.status);
 }

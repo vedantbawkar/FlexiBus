@@ -5,7 +5,6 @@ import 'package:flexiops/screens/drivers/profile_screen.dart';
 import 'package:flexiops/screens/drivers/today_screen.dart';
 import 'package:flutter/material.dart';
 
-
 class DriverDashboard extends StatefulWidget {
   const DriverDashboard({super.key});
 
@@ -14,7 +13,7 @@ class DriverDashboard extends StatefulWidget {
 }
 
 class _DriverDashboardState extends State<DriverDashboard> {
-    int _selectedIndex = 0;
+  int _selectedIndex = 0;
 
   // List of screens to be shown based on bottom navigation selection
   final List<Widget> _screens = [
@@ -23,9 +22,6 @@ class _DriverDashboardState extends State<DriverDashboard> {
     const RideNotificationScreen(),
     const RideProfileScreen(),
   ];
-
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -70,7 +66,6 @@ class _DriverDashboardState extends State<DriverDashboard> {
 }
 
 class RideHomeScreen extends StatefulWidget {
-
   const RideHomeScreen({super.key});
 
   @override
@@ -82,19 +77,19 @@ class _RideHomeScreenState extends State<RideHomeScreen> {
 
   int _passengerCount = 23;
 
-  String _rideStatus = "In Progress"; 
- // "Yet to Start", "In Progress", "Completed"
+  String _rideStatus = "In Progress";
+  // "Yet to Start", "In Progress", "Completed"
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
-      child:       SafeArea(
+      child: SafeArea(
         child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Header with profile summary
               _buildHeader(),
-              
+
               // Main content
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -102,17 +97,17 @@ class _RideHomeScreenState extends State<RideHomeScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const SizedBox(height: 20),
-                    
+
                     // Current Ride Card
                     _buildCurrentRideCard(),
-                    
+
                     const SizedBox(height: 24),
-                    
+
                     // Ride Controls
                     _buildRideControls(),
-                    
+
                     const SizedBox(height: 24),
-                    
+
                     // Today's Schedule Section
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -135,14 +130,14 @@ class _RideHomeScreenState extends State<RideHomeScreen> {
                         ),
                       ],
                     ),
-                    
+
                     const SizedBox(height: 16),
-                    
+
                     // Schedule Timeline
                     _buildScheduleTimeline(),
-                    
+
                     const SizedBox(height: 24),
-                    
+
                     // Important Notices Section
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -175,9 +170,9 @@ class _RideHomeScreenState extends State<RideHomeScreen> {
                         ),
                       ],
                     ),
-                    
+
                     const SizedBox(height: 16),
-                    
+
                     // Notices
                     _buildNoticeCard(
                       "Route Change",
@@ -185,25 +180,25 @@ class _RideHomeScreenState extends State<RideHomeScreen> {
                       Icons.route,
                       Colors.amber,
                     ),
-                    
+
                     const SizedBox(height: 12),
-                    
+
                     _buildNoticeCard(
                       "Maintenance Reminder",
                       "Vehicle B-2104 is due for inspection this Friday.",
                       Icons.build,
                       Colors.blue,
                     ),
-                    
+
                     const SizedBox(height: 12),
-                    
+
                     _buildNoticeCard(
                       "Message from Dispatcher",
                       "Please report fuel levels at the end of each shift.",
                       Icons.message,
                       primaryColor,
                     ),
-                    
+
                     const SizedBox(height: 40),
                   ],
                 ),
@@ -258,7 +253,10 @@ class _RideHomeScreenState extends State<RideHomeScreen> {
                       ),
                       const SizedBox(height: 4),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
                         decoration: BoxDecoration(
                           color: lightYellowColor.withOpacity(0.3),
                           borderRadius: BorderRadius.circular(12),
@@ -382,7 +380,7 @@ class _RideHomeScreenState extends State<RideHomeScreen> {
               ],
             ),
           ),
-          
+
           // Ride Details
           Padding(
             padding: const EdgeInsets.all(16),
@@ -415,7 +413,10 @@ class _RideHomeScreenState extends State<RideHomeScreen> {
                       ],
                     ),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
                       decoration: BoxDecoration(
                         color: lightYellowColor,
                         borderRadius: BorderRadius.circular(20),
@@ -431,9 +432,9 @@ class _RideHomeScreenState extends State<RideHomeScreen> {
                     ),
                   ],
                 ),
-                
+
                 const SizedBox(height: 20),
-                
+
                 // Start and End Points with Dotted Line
                 Row(
                   children: [
@@ -495,9 +496,9 @@ class _RideHomeScreenState extends State<RideHomeScreen> {
                     ),
                   ],
                 ),
-                
+
                 const SizedBox(height: 16),
-                
+
                 // Progress indicator
                 ClipRRect(
                   borderRadius: BorderRadius.circular(4),
@@ -508,19 +509,16 @@ class _RideHomeScreenState extends State<RideHomeScreen> {
                     minHeight: 6,
                   ),
                 ),
-                
+
                 const SizedBox(height: 8),
-                
+
                 // Estimated time
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     Text(
                       'Estimated arrival: ',
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: Colors.grey[600],
-                      ),
+                      style: TextStyle(fontSize: 13, color: Colors.grey[600]),
                     ),
                     Text(
                       '09:45 AM',
@@ -566,7 +564,7 @@ class _RideHomeScreenState extends State<RideHomeScreen> {
             ),
           ),
           const SizedBox(height: 16),
-          
+
           // Start/End Ride Button
           SizedBox(
             width: double.infinity,
@@ -585,8 +583,13 @@ class _RideHomeScreenState extends State<RideHomeScreen> {
                 });
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: _rideStatus == "In Progress" ? Colors.red[600] : Colors.green[600],
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                backgroundColor:
+                    _rideStatus == "In Progress"
+                        ? Colors.red[600]
+                        : Colors.green[600],
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
               child: Text(
                 _rideStatus == "In Progress" ? 'End Ride' : 'Start Ride',
@@ -597,9 +600,9 @@ class _RideHomeScreenState extends State<RideHomeScreen> {
               ),
             ),
           ),
-          
+
           const SizedBox(height: 16),
-          
+
           // Share Location Toggle
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -640,9 +643,9 @@ class _RideHomeScreenState extends State<RideHomeScreen> {
               ],
             ),
           ),
-          
+
           const SizedBox(height: 16),
-          
+
           // Passenger Count
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -655,11 +658,7 @@ class _RideHomeScreenState extends State<RideHomeScreen> {
               children: [
                 Row(
                   children: [
-                    Icon(
-                      Icons.people_outline,
-                      color: primaryColor,
-                      size: 20,
-                    ),
+                    Icon(Icons.people_outline, color: primaryColor, size: 20),
                     const SizedBox(width: 12),
                     Text(
                       'Passenger Count',
@@ -742,7 +741,7 @@ class _RideHomeScreenState extends State<RideHomeScreen> {
           true,
           true,
         ),
-        
+
         // Current ride
         _buildScheduleItem(
           "Route 42 - Downtown Express",
@@ -750,7 +749,7 @@ class _RideHomeScreenState extends State<RideHomeScreen> {
           true,
           false,
         ),
-        
+
         // Upcoming ride
         _buildScheduleItem(
           "Route 27 - University Line",
@@ -762,7 +761,12 @@ class _RideHomeScreenState extends State<RideHomeScreen> {
     );
   }
 
-  Widget _buildScheduleItem(String routeName, String timeSlot, bool isStarted, bool isCompleted) {
+  Widget _buildScheduleItem(
+    String routeName,
+    String timeSlot,
+    bool isStarted,
+    bool isCompleted,
+  ) {
     return IntrinsicHeight(
       child: Row(
         children: [
@@ -774,26 +778,32 @@ class _RideHomeScreenState extends State<RideHomeScreen> {
                 height: 20,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: isStarted ? (isCompleted ? Colors.green[600] : primaryColor) : Colors.grey[400],
-                  border: isStarted 
-                      ? Border.all(color: isCompleted ? Colors.green[100]! : primaryColor.withOpacity(0.3), width: 3)
-                      : null,
+                  color:
+                      isStarted
+                          ? (isCompleted ? Colors.green[600] : primaryColor)
+                          : Colors.grey[400],
+                  border:
+                      isStarted
+                          ? Border.all(
+                            color:
+                                isCompleted
+                                    ? Colors.green[100]!
+                                    : primaryColor.withOpacity(0.3),
+                            width: 3,
+                          )
+                          : null,
                 ),
-                child: isCompleted 
-                    ? const Icon(Icons.check, color: Colors.white, size: 12) 
-                    : null,
+                child:
+                    isCompleted
+                        ? const Icon(Icons.check, color: Colors.white, size: 12)
+                        : null,
               ),
-              Expanded(
-                child: Container(
-                  width: 2,
-                  color: Colors.grey[300],
-                ),
-              ),
+              Expanded(child: Container(width: 2, color: Colors.grey[300])),
             ],
           ),
-          
+
           const SizedBox(width: 12),
-          
+
           // Content
           Expanded(
             child: Padding(
@@ -801,9 +811,15 @@ class _RideHomeScreenState extends State<RideHomeScreen> {
               child: Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: isStarted && !isCompleted ? lightYellowColor.withOpacity(0.3) : Colors.white,
+                  color:
+                      isStarted && !isCompleted
+                          ? lightYellowColor.withOpacity(0.3)
+                          : Colors.white,
                   border: Border.all(
-                    color: isStarted && !isCompleted ? primaryColor.withOpacity(0.3) : Colors.grey[200]!,
+                    color:
+                        isStarted && !isCompleted
+                            ? primaryColor.withOpacity(0.3)
+                            : Colors.grey[200]!,
                   ),
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -818,7 +834,10 @@ class _RideHomeScreenState extends State<RideHomeScreen> {
                           style: TextStyle(
                             fontWeight: FontWeight.w600,
                             fontSize: 15,
-                            color: isStarted && !isCompleted ? primaryColor : Colors.grey[800],
+                            color:
+                                isStarted && !isCompleted
+                                    ? primaryColor
+                                    : Colors.grey[800],
                           ),
                         ),
                         const SizedBox(height: 4),
@@ -826,16 +845,22 @@ class _RideHomeScreenState extends State<RideHomeScreen> {
                           timeSlot,
                           style: TextStyle(
                             fontSize: 13,
-                            color: isStarted && !isCompleted ? primaryColor.withOpacity(0.7) : Colors.grey[600],
+                            color:
+                                isStarted && !isCompleted
+                                    ? primaryColor.withOpacity(0.7)
+                                    : Colors.grey[600],
                           ),
                         ),
                       ],
                     ),
-                    
+
                     // Status chip or icon
                     if (isCompleted)
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 5,
+                        ),
                         decoration: BoxDecoration(
                           color: Colors.green[100],
                           borderRadius: BorderRadius.circular(12),
@@ -851,7 +876,10 @@ class _RideHomeScreenState extends State<RideHomeScreen> {
                       )
                     else if (isStarted)
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 5,
+                        ),
                         decoration: BoxDecoration(
                           color: primaryColor.withOpacity(0.2),
                           borderRadius: BorderRadius.circular(12),
@@ -881,7 +909,12 @@ class _RideHomeScreenState extends State<RideHomeScreen> {
     );
   }
 
-  Widget _buildNoticeCard(String title, String message, IconData icon, Color color) {
+  Widget _buildNoticeCard(
+    String title,
+    String message,
+    IconData icon,
+    Color color,
+  ) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -904,11 +937,7 @@ class _RideHomeScreenState extends State<RideHomeScreen> {
               color: color.withOpacity(0.1),
               borderRadius: BorderRadius.circular(10),
             ),
-            child: Icon(
-              icon,
-              color: color,
-              size: 20,
-            ),
+            child: Icon(icon, color: color, size: 20),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -925,10 +954,7 @@ class _RideHomeScreenState extends State<RideHomeScreen> {
                 const SizedBox(height: 4),
                 Text(
                   message,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey[600],
-                  ),
+                  style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                 ),
               ],
             ),
