@@ -27,7 +27,7 @@ class _HomeScreenState extends State<HomeScreen> {
   static const List<Widget> _widgetOptions = <Widget>[
     MainScreen(),
     BusBookingOrTrackingScreen(),
-    SubscriptionScreen(showAppBar: false),
+    SubscriptionScreen(),
     WalletScreen(showAppBar: false),
     ProfileScreen(),
   ];
@@ -79,23 +79,23 @@ class _HomeScreenState extends State<HomeScreen> {
       bottomNavigationBar: BottomNavigationBar(
         items: <BottomNavigationBarItem>[
           const BottomNavigationBarItem(
-            icon: Icon(Icons.directions_bus),
+            icon: Icon(Icons.home_rounded),
             label: 'Home',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.map),
+            icon: Icon(Icons.directions_bus_outlined),
             label: hasBooked ? 'Track' : 'Book',
           ),
           const BottomNavigationBarItem(
-            icon: Icon(Icons.star),
-            label: 'Subscription',
+            icon: Icon(Icons.confirmation_number_outlined),
+            label: 'Tickets',
           ),
           const BottomNavigationBarItem(
-            icon: Icon(Icons.wallet),
+            icon: Icon(Icons.wallet_rounded),
             label: 'Wallet',
           ),
           const BottomNavigationBarItem(
-            icon: Icon(Icons.person),
+            icon: Icon(Icons.person_2_outlined),
             label: 'Profile',
           ),
         ],

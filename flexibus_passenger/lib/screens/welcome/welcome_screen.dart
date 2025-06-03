@@ -44,7 +44,7 @@ class WelcomeScreen extends StatelessWidget {
                     ),
                     SizedBox(height: 8),
                     Text(
-                      'Hop on. Ride smart.',
+                      'Hop on, Ride smart.',
                       style: TextStyle(
                         fontSize: 18,
                         color: Colors.white70,
