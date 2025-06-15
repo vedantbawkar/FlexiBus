@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../dashboard/home_screen.dart';
 
 class BookTicket extends StatefulWidget {
   final String? routeNumber;
@@ -35,11 +34,12 @@ class _BookTicketState extends State<BookTicket> {
   List<String> _availableTimings = [];
   List<String> _availableStops = [];
   String? _routeNumberError;
-  bool _isRouteNumberValid = true;
+  bool? _isRouteNumberValid; // Changed to nullable boolean
   bool _isSourceFocused = false;
   bool _isDestinationFocused = false;
   final FocusNode _sourceFocusNode = FocusNode();
   final FocusNode _destinationFocusNode = FocusNode();
+  bool _isRouteDataLoaded = false;
 
   final double _ticketFare = 100.0;
   double _walletBalance = 0.0;
@@ -104,7 +104,15 @@ class _BookTicketState extends State<BookTicket> {
   }
 
   Future<void> _fetchTimings(String routeNumber) async {
-    if (routeNumber.isEmpty) return;
+    if (routeNumber.isEmpty) {
+      setState(() {
+        _isRouteNumberValid = false;
+        _isRouteDataLoaded = false;
+        _availableTimings = [];
+        _availableStops = [];
+      });
+      return;
+    }
 
     try {
       final routeDoc =
@@ -117,11 +125,13 @@ class _BookTicketState extends State<BookTicket> {
         if (routeDoc.docs.isEmpty) {
           _routeNumberError = "We don't serve on this route yet";
           _isRouteNumberValid = false;
+          _isRouteDataLoaded = false;
           _availableTimings = [];
           _availableStops = [];
         } else {
           _routeNumberError = null;
           _isRouteNumberValid = true;
+          _isRouteDataLoaded = true;
           final routeData = routeDoc.docs.first.data();
           _availableTimings = List<String>.from(routeData['timings'] ?? []);
           _availableStops = List<String>.from(routeData['stops'] ?? []);
@@ -139,6 +149,7 @@ class _BookTicketState extends State<BookTicket> {
       setState(() {
         _routeNumberError = "Error fetching route details";
         _isRouteNumberValid = false;
+        _isRouteDataLoaded = false;
         _availableTimings = [];
         _availableStops = [];
       });
@@ -174,22 +185,35 @@ class _BookTicketState extends State<BookTicket> {
             labelText: label,
             labelStyle: GoogleFonts.poppins(
               color:
-                  isRouteNumber && !_isRouteNumberValid
+                  isRouteNumber && _isRouteNumberValid == false
                       ? Colors.red
                       : Colors.black54,
             ),
             prefixIcon: Icon(
               prefixIcon,
               color:
-                  isRouteNumber && !_isRouteNumberValid
+                  isRouteNumber && _isRouteNumberValid == false
                       ? Colors.red
                       : widget.gradient.colors[1],
             ),
+            suffixIcon:
+                isRouteNumber
+                    ? IconButton(
+                      icon: Icon(
+                        Icons.search,
+                        color: widget.gradient.colors[1],
+                      ),
+                      onPressed: () {
+                        _fetchTimings(controller.text);
+                        FocusScope.of(context).unfocus();
+                      },
+                    )
+                    : null,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide(
                 color:
-                    isRouteNumber && !_isRouteNumberValid
+                    isRouteNumber && _isRouteNumberValid == false
                         ? Colors.red
                         : Colors.grey[300]!,
               ),
@@ -198,7 +222,7 @@ class _BookTicketState extends State<BookTicket> {
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide(
                 color:
-                    isRouteNumber && !_isRouteNumberValid
+                    isRouteNumber && _isRouteNumberValid == false
                         ? Colors.red
                         : Colors.grey[300]!,
               ),
@@ -207,7 +231,7 @@ class _BookTicketState extends State<BookTicket> {
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide(
                 color:
-                    isRouteNumber && !_isRouteNumberValid
+                    isRouteNumber && _isRouteNumberValid == false
                         ? Colors.red
                         : widget.gradient.colors[1],
               ),
@@ -228,10 +252,11 @@ class _BookTicketState extends State<BookTicket> {
           onChanged:
               isRouteNumber
                   ? (value) {
-                    if (!_isRouteNumberValid) {
+                    if (_isRouteNumberValid == false) {
                       setState(() {
-                        _isRouteNumberValid = true;
+                        _isRouteNumberValid = null;
                         _routeNumberError = null;
+                        _isRouteDataLoaded = false;
                       });
                     }
                   }
@@ -417,7 +442,9 @@ class _BookTicketState extends State<BookTicket> {
       width: double.infinity,
       child: ElevatedButton(
         onPressed:
-            (_selectedTiming == null || isInsufficientBalance)
+            (_selectedTiming == null ||
+                    isInsufficientBalance ||
+                    !_isRouteDataLoaded)
                 ? null
                 : () async {
                   if (_formKey.currentState!.validate()) {
@@ -541,11 +568,24 @@ class _BookTicketState extends State<BookTicket> {
         TextFormField(
           controller: controller,
           focusNode: focusNode,
-          enabled: enabled && _isRouteNumberValid,
+          enabled:
+              enabled &&
+              _isRouteDataLoaded, // Changed to use _isRouteDataLoaded
           decoration: InputDecoration(
             labelText: label,
-            labelStyle: GoogleFonts.poppins(color: Colors.black54),
-            prefixIcon: Icon(prefixIcon, color: widget.gradient.colors[1]),
+            labelStyle: GoogleFonts.poppins(
+              color:
+                  _isRouteDataLoaded
+                      ? Colors.black54
+                      : Colors.grey, // Grey out label when disabled
+            ),
+            prefixIcon: Icon(
+              prefixIcon,
+              color:
+                  _isRouteDataLoaded
+                      ? widget.gradient.colors[1]
+                      : Colors.grey, // Grey out icon when disabled
+            ),
             suffixIcon: Icon(Icons.arrow_drop_down, color: Colors.grey),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
@@ -559,13 +599,23 @@ class _BookTicketState extends State<BookTicket> {
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide(color: widget.gradient.colors[1]),
             ),
-            filled: !enabled || !_isRouteNumberValid,
-            fillColor: enabled && _isRouteNumberValid ? null : Colors.grey[100],
+            filled: !_isRouteDataLoaded, // Fill when disabled
+            fillColor: _isRouteDataLoaded ? null : Colors.grey[100],
+            hintText:
+                _isRouteDataLoaded
+                    ? null
+                    : 'Enter route number first', // Hint when disabled
+            hintStyle: GoogleFonts.poppins(color: Colors.grey),
           ),
-          style: GoogleFonts.poppins(),
+          style: GoogleFonts.poppins(
+            color:
+                _isRouteDataLoaded
+                    ? Colors.black
+                    : Colors.grey, // Grey out text when disabled
+          ),
           readOnly: true,
           onTap:
-              enabled && _isRouteNumberValid
+              enabled && _isRouteDataLoaded
                   ? () {
                     showDialog(
                       context: context,
@@ -742,10 +792,12 @@ class _BookTicketState extends State<BookTicket> {
                   _buildFareSection(),
                   const SizedBox(height: 24),
                 ],
-                _buildSectionTitle('Select Timing'),
-                const SizedBox(height: 16),
-                _buildTimingSelector(),
-                const SizedBox(height: 32),
+                if (_isRouteDataLoaded) ...[
+                  _buildSectionTitle('Select Timing'),
+                  const SizedBox(height: 16),
+                  _buildTimingSelector(),
+                  const SizedBox(height: 32),
+                ],
                 _buildBookButton(),
               ],
             ),

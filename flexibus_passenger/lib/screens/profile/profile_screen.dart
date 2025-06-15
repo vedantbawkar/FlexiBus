@@ -25,6 +25,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final List<String> genderOptions = ['Male', 'Female', 'Others'];
 
   bool isLoading = false;
+  String? profileImageUrl;
+  Map<String, dynamic>? initialData;
+  bool hasChanges = false;
+  String? newProfileImagePath;
 
   final LinearGradient gradient = const LinearGradient(
     colors: [Color(0xFF0077B6), Color(0xFF00B4D8), Color(0xFF00C897)],
@@ -36,6 +40,47 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void initState() {
     super.initState();
     _loadUserProfile();
+    // Add listeners to all text controllers
+    nameController.addListener(_checkForChanges);
+    idProofTypeController.addListener(_checkForChanges);
+    idProofValueController.addListener(_checkForChanges);
+    ageController.addListener(_checkForChanges);
+    genderController.addListener(_checkForChanges);
+    emailController.addListener(_checkForChanges);
+    phoneController.addListener(_checkForChanges);
+  }
+
+  @override
+  void dispose() {
+    // Remove listeners when widget is disposed
+    nameController.removeListener(_checkForChanges);
+    idProofTypeController.removeListener(_checkForChanges);
+    idProofValueController.removeListener(_checkForChanges);
+    ageController.removeListener(_checkForChanges);
+    genderController.removeListener(_checkForChanges);
+    emailController.removeListener(_checkForChanges);
+    phoneController.removeListener(_checkForChanges);
+    super.dispose();
+  }
+
+  void _checkForChanges() {
+    final currentData = {
+      'name': nameController.text,
+      'idProofType': idProofTypeController.text,
+      'idProofValue': idProofValueController.text,
+      'age': ageController.text,
+      'gender': genderController.text,
+      'email': emailController.text,
+      'phone': phoneController.text,
+      'profileImageUrl': profileImageUrl,
+    };
+
+    setState(() {
+      hasChanges =
+          initialData != null &&
+          (currentData.toString() != initialData!.toString() ||
+              newProfileImagePath != null);
+    });
   }
 
   Future<void> _loadUserProfile() async {
@@ -50,13 +95,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 .get();
         if (doc.exists) {
           final data = doc.data()!;
-          nameController.text = data['name'] ?? '';
-          idProofTypeController.text = data['idProofType'] ?? 'Aadhar';
-          idProofValueController.text = data['idProofValue'] ?? '';
-          ageController.text = data['age']?.toString() ?? '';
-          genderController.text = data['gender'] ?? 'Male';
-          emailController.text = data['email'] ?? '';
-          phoneController.text = data['phone'] ?? '';
+          initialData = {
+            'name': data['name'] ?? '',
+            'idProofType': data['idProofType'] ?? 'Aadhar',
+            'idProofValue': data['idProofValue'] ?? '',
+            'age': data['age']?.toString() ?? '',
+            'gender': data['gender'] ?? 'Male',
+            'email': data['email'] ?? '',
+            'phone': data['phone'] ?? '',
+            'profileImageUrl': data['profileImageUrl'],
+          };
+
+          nameController.text = initialData!['name'];
+          idProofTypeController.text = initialData!['idProofType'];
+          idProofValueController.text = initialData!['idProofValue'];
+          ageController.text = initialData!['age'];
+          genderController.text = initialData!['gender'];
+          emailController.text = initialData!['email'];
+          phoneController.text = initialData!['phone'];
+          setState(() {
+            profileImageUrl = initialData!['profileImageUrl'];
+          });
         }
       }
     } catch (e) {
@@ -85,12 +144,32 @@ class _ProfileScreenState extends State<ProfileScreen> {
               'age': int.parse(ageController.text.trim()),
               'gender': genderController.text.trim(),
               'email': emailController.text.trim(),
-              'phone': phoneController.text.trim(),
+              'phone': phoneController.text.trim().replaceAll(' ', ''),
               'isVerified': false,
             });
+
+        // TODO: Handle profile image upload if newProfileImagePath is not null
+
+        // Update initial data after successful update
+        initialData = {
+          'name': nameController.text,
+          'idProofType': idProofTypeController.text,
+          'idProofValue': idProofValueController.text,
+          'age': ageController.text,
+          'gender': genderController.text,
+          'email': emailController.text,
+          'phone': phoneController.text,
+          'profileImageUrl': profileImageUrl,
+        };
+        newProfileImagePath = null;
+
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Profile updated successfully')),
         );
+
+        setState(() {
+          hasChanges = false;
+        });
       }
     } catch (e) {
       ScaffoldMessenger.of(
@@ -129,6 +208,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final profileSize = screenWidth * 0.33; // 33% of screen width
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -156,6 +238,72 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         decoration: BoxDecoration(
                           gradient: gradient,
                           borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      const SizedBox(height: 30),
+                      // Profile Image Section
+                      Center(
+                        child: Stack(
+                          children: [
+                            Container(
+                              width: profileSize,
+                              height: profileSize,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Colors.grey[200],
+                                border: Border.all(
+                                  color: gradient.colors[1],
+                                  width: 2,
+                                ),
+                              ),
+                              child: ClipOval(
+                                child:
+                                    profileImageUrl != null
+                                        ? Image.network(
+                                          profileImageUrl!,
+                                          fit: BoxFit.cover,
+                                          errorBuilder:
+                                              (context, error, stackTrace) =>
+                                                  Icon(
+                                                    Icons.person,
+                                                    size: profileSize * 0.5,
+                                                    color: gradient.colors[1],
+                                                  ),
+                                        )
+                                        : Icon(
+                                          Icons.person,
+                                          size: profileSize * 0.5,
+                                          color: gradient.colors[1],
+                                        ),
+                              ),
+                            ),
+                            Positioned(
+                              bottom: 0,
+                              right: 0,
+                              child: GestureDetector(
+                                onTap: () {
+                                  // TODO: Implement image picker
+                                  // When image is selected, set newProfileImagePath and call _checkForChanges()
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    gradient: gradient,
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                      color: Colors.white,
+                                      width: 2,
+                                    ),
+                                  ),
+                                  child: const Icon(
+                                    Icons.add,
+                                    color: Colors.white,
+                                    size: 24,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                       const SizedBox(height: 30),
@@ -210,6 +358,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                       .toList(),
                               onChanged: (value) {
                                 idProofTypeController.text = value ?? 'Aadhar';
+                                _checkForChanges();
                               },
                             ),
                             const SizedBox(height: 12),
@@ -257,6 +406,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                       .toList(),
                               onChanged: (value) {
                                 genderController.text = value ?? 'Male';
+                                _checkForChanges();
                               },
                             ),
                             const SizedBox(height: 12),
@@ -287,32 +437,51 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             ),
                             const SizedBox(height: 20),
                             GestureDetector(
-                              onTap: _updateUserProfile,
+                              onTap: hasChanges ? _updateUserProfile : null,
                               child: MouseRegion(
-                                cursor: SystemMouseCursors.click,
-                                onEnter: (event) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text(
-                                        'Updating your profile causes the verification to be gone',
-                                      ),
-                                      duration: Duration(seconds: 2),
-                                    ),
-                                  );
-                                },
+                                cursor:
+                                    hasChanges
+                                        ? SystemMouseCursors.click
+                                        : SystemMouseCursors.basic,
+                                onEnter:
+                                    hasChanges
+                                        ? (event) {
+                                          ScaffoldMessenger.of(
+                                            context,
+                                          ).showSnackBar(
+                                            const SnackBar(
+                                              content: Text(
+                                                'Updating your profile causes the verification to be gone',
+                                              ),
+                                              duration: Duration(seconds: 2),
+                                            ),
+                                          );
+                                        }
+                                        : null,
                                 child: Container(
                                   width: double.infinity,
                                   padding: const EdgeInsets.symmetric(
                                     vertical: 16,
                                   ),
                                   decoration: BoxDecoration(
-                                    gradient: gradient,
+                                    gradient:
+                                        hasChanges
+                                            ? gradient
+                                            : LinearGradient(
+                                              colors: [
+                                                Colors.grey.shade400,
+                                                Colors.grey.shade500,
+                                              ],
+                                              begin: Alignment.centerLeft,
+                                              end: Alignment.centerRight,
+                                            ),
                                     borderRadius: BorderRadius.circular(12),
                                     boxShadow: [
                                       BoxShadow(
-                                        color: gradient.colors[1].withOpacity(
-                                          0.4,
-                                        ),
+                                        color: (hasChanges
+                                                ? gradient.colors[1]
+                                                : Colors.grey)
+                                            .withOpacity(0.4),
                                         blurRadius: 8,
                                         offset: const Offset(0, 4),
                                       ),
@@ -320,7 +489,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   ),
                                   child: Center(
                                     child: Text(
-                                      'Update Profile',
+                                      hasChanges
+                                          ? 'Update Profile'
+                                          : 'No changes detected',
                                       style: GoogleFonts.poppins(
                                         color: Colors.white,
                                         fontSize: 18,
