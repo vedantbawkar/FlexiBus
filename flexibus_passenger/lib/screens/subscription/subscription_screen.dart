@@ -11,7 +11,8 @@ class SubscriptionScreen extends StatefulWidget {
   State<SubscriptionScreen> createState() => _SubscriptionScreenState();
 }
 
-class _SubscriptionScreenState extends State<SubscriptionScreen> {
+class _SubscriptionScreenState extends State<SubscriptionScreen>
+    with SingleTickerProviderStateMixin {
   final LinearGradient gradient = const LinearGradient(
     colors: [Color(0xFF0077B6), Color(0xFF00B4D8), Color(0xFF00C897)],
     begin: Alignment.centerLeft,
@@ -19,6 +20,32 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
   );
 
   String _selectedTicketFilter = 'Active';
+  late TabController _tabController;
+  late PageController _pageController;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 2, vsync: this);
+    _pageController = PageController();
+
+    _tabController.addListener(() {
+      if (!_tabController.indexIsChanging) {
+        _pageController.animateToPage(
+          _tabController.index,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+        );
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    _pageController.dispose();
+    super.dispose();
+  }
 
   Widget _buildTicketsSection() {
     return Container(
@@ -73,16 +100,45 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
             color: gradient.colors[1],
             size: 20,
           ),
+          dropdownColor: Colors.white,
+          elevation: 3,
+          menuMaxHeight: 200,
+          borderRadius: BorderRadius.circular(12),
           items:
               ['Active', 'Expired'].map((String value) {
                 return DropdownMenuItem<String>(
                   value: value,
-                  child: Text(
-                    value,
-                    style: GoogleFonts.poppins(
-                      fontSize: 14.0,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.black87,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 8.0,
+                      horizontal: 4.0,
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(6.0),
+                          decoration: BoxDecoration(
+                            color: gradient.colors[0].withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(8.0),
+                          ),
+                          child: Icon(
+                            value == 'Active'
+                                ? Icons.confirmation_num_outlined
+                                : Icons.history,
+                            size: 16,
+                            color: gradient.colors[1],
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Text(
+                          value,
+                          style: GoogleFonts.poppins(
+                            fontSize: 14.0,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.black87,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 );
@@ -100,11 +156,16 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
   }
 
   Widget _buildTicketCard() {
+    final currentUser = FirebaseAuth.instance.currentUser;
+    if (currentUser == null) {
+      return _buildEmptyState('Please sign in to view tickets');
+    }
+
     return StreamBuilder<DocumentSnapshot>(
       stream:
           FirebaseFirestore.instance
               .collection('passengers')
-              .doc(FirebaseAuth.instance.currentUser?.uid)
+              .doc(currentUser.uid)
               .snapshots(),
       builder: (context, snapshot) {
         if (snapshot.hasError) {
@@ -115,9 +176,11 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
           return _buildLoadingState();
         }
 
-        final userData = snapshot.data?.data() as Map<String, dynamic>?;
-        if (userData == null) return _buildEmptyState('No tickets found');
+        if (!snapshot.hasData || !snapshot.data!.exists) {
+          return _buildEmptyState('No tickets found');
+        }
 
+        final userData = snapshot.data!.data() as Map<String, dynamic>;
         final tickets =
             List<Map<String, dynamic>>.from(
               userData['tickets_and_passes'] ?? [],
@@ -142,13 +205,13 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
         activeTickets.sort((a, b) {
           final aTime = (a['booked_at'] as Timestamp).toDate();
           final bTime = (b['booked_at'] as Timestamp).toDate();
-          return bTime.compareTo(aTime); // Descending order (latest first)
+          return bTime.compareTo(aTime);
         });
 
         expiredTickets.sort((a, b) {
           final aTime = (a['booked_at'] as Timestamp).toDate();
           final bTime = (b['booked_at'] as Timestamp).toDate();
-          return bTime.compareTo(aTime); // Descending order (latest first)
+          return bTime.compareTo(aTime);
         });
 
         final ticketsToShow =
@@ -180,6 +243,21 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
     final bookedAt = (ticket['booked_at'] as Timestamp).toDate();
     final isExpired = validTill.isBefore(DateTime.now());
 
+    final ticketGradient =
+        isExpired
+            ? const LinearGradient(
+              colors: [
+                Color(0xFF9E9E9E),
+                Color(0xFF757575),
+                Color(0xFF757575),
+                Color(0xFF757575),
+                Color(0xFF757575),
+              ],
+              begin: Alignment.centerLeft,
+              end: Alignment.centerRight,
+            )
+            : gradient;
+
     return Container(
       margin: const EdgeInsets.only(bottom: 16.0),
       decoration: BoxDecoration(
@@ -199,7 +277,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
           Container(
             padding: const EdgeInsets.all(16.0),
             decoration: BoxDecoration(
-              gradient: gradient,
+              gradient: ticketGradient,
               borderRadius: const BorderRadius.vertical(
                 top: Radius.circular(16.0),
               ),
@@ -261,15 +339,22 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                   'From',
                   ticket['source'],
                   Icons.location_on_outlined,
+                  ticket,
                 ),
                 const SizedBox(height: 12.0),
                 _buildTicketInfo(
                   'To',
                   ticket['destination'],
                   Icons.location_on,
+                  ticket,
                 ),
                 const SizedBox(height: 12.0),
-                _buildTicketInfo('Time', ticket['timing'], Icons.access_time),
+                _buildTicketInfo(
+                  'Time',
+                  ticket['timing'],
+                  Icons.access_time,
+                  ticket,
+                ),
                 const Divider(height: 24.0),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -286,10 +371,22 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
     );
   }
 
-  Widget _buildTicketInfo(String label, String value, IconData icon) {
+  Widget _buildTicketInfo(
+    String label,
+    String value,
+    IconData icon,
+    Map<String, dynamic> ticket,
+  ) {
+    final validTill = (ticket['valid_till'] as Timestamp).toDate();
+    final isExpired = validTill.isBefore(DateTime.now());
+
     return Row(
       children: [
-        Icon(icon, size: 18, color: gradient.colors[1]),
+        Icon(
+          icon,
+          size: 18,
+          color: isExpired ? Colors.grey[600] : gradient.colors[1],
+        ),
         const SizedBox(width: 8),
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -833,181 +930,130 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[50],
-      body: SingleChildScrollView(
-        physics: const BouncingScrollPhysics(),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 20.0),
-            _buildTicketsSection(),
-            const SizedBox(height: 40.0),
+      body: Column(
+        children: [
+          // Status bar spacing
+          SizedBox(height: MediaQuery.of(context).padding.top),
 
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20.0),
-              child: Text(
-                "Choose Your Plan",
-                style: GoogleFonts.poppins(
-                  fontSize: 24.0,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.black87,
-                  letterSpacing: -0.5,
-                ),
+          // Tab Bar
+          Container(
+            color: Colors.white,
+            child: TabBar(
+              controller: _tabController,
+              indicatorColor: gradient.colors[1],
+              labelColor: gradient.colors[1],
+              unselectedLabelColor: Colors.grey[600],
+              labelStyle: GoogleFonts.poppins(
+                fontWeight: FontWeight.w600,
+                fontSize: 14,
               ),
-            ),
-            const SizedBox(height: 8.0),
-
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20.0),
-              child: Text(
-                "Unlock premium features with our subscription plans",
-                style: GoogleFonts.poppins(
-                  fontSize: 16.0,
-                  color: Colors.black54,
-                  height: 1.4,
-                ),
+              unselectedLabelStyle: GoogleFonts.poppins(
+                fontWeight: FontWeight.w500,
+                fontSize: 14,
               ),
+              tabs: const [
+                Tab(text: "My Tickets"),
+                Tab(text: "Subscription Plans"),
+              ],
             ),
-            const SizedBox(height: 24.0),
+          ),
 
-            StreamBuilder<QuerySnapshot>(
-              stream:
-                  FirebaseFirestore.instance
-                      .collection('subscription_plans')
-                      .snapshots(),
-              builder: (context, snapshot) {
-                if (snapshot.hasError) {
-                  return Container(
-                    margin: const EdgeInsets.all(20.0),
-                    padding: const EdgeInsets.all(24.0),
-                    decoration: BoxDecoration(
-                      color: Colors.red.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(16.0),
-                      border: Border.all(color: Colors.red.withOpacity(0.3)),
-                    ),
-                    child: Column(
-                      children: [
-                        Icon(
-                          Icons.error_outline,
-                          color: Colors.red[600],
-                          size: 48,
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          'Error loading subscription plans',
-                          style: GoogleFonts.poppins(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.red[700],
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Please check your connection and try again',
-                          style: GoogleFonts.poppins(
-                            fontSize: 14,
-                            color: Colors.red[600],
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                      ],
-                    ),
-                  );
-                }
-
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return Padding(
-                    padding: const EdgeInsets.all(40.0),
-                    child: Center(
-                      child: Column(
-                        children: [
-                          CircularProgressIndicator(
-                            valueColor: AlwaysStoppedAnimation<Color>(
-                              gradient.colors[1],
-                            ),
-                            strokeWidth: 3,
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            'Loading subscription plans...',
-                            style: GoogleFonts.poppins(
-                              fontSize: 16,
-                              color: Colors.black54,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                }
-
-                final plans = snapshot.data?.docs ?? [];
-
-                if (plans.isEmpty) {
-                  return Container(
-                    margin: const EdgeInsets.all(20.0),
-                    padding: const EdgeInsets.all(32.0),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(16.0),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.08),
-                          blurRadius: 12,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(20.0),
-                          decoration: BoxDecoration(
-                            color: gradient.colors[0].withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(12.0),
-                          ),
-                          child: Icon(
-                            Icons.subscriptions_outlined,
-                            size: 48,
-                            color: gradient.colors[1],
-                          ),
-                        ),
-                        const SizedBox(height: 20),
-                        Text(
-                          'No Plans Available',
-                          style: GoogleFonts.poppins(
-                            fontSize: 20,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.black87,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Subscription plans will appear here when available',
-                          style: GoogleFonts.poppins(
-                            fontSize: 14,
-                            color: Colors.black54,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                      ],
-                    ),
-                  );
-                }
-
-                return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                  child: Column(
-                    children: List.generate(plans.length, (index) {
-                      final plan = plans[index].data() as Map<String, dynamic>;
-                      return _buildSubscriptionCard(plan, index);
-                    }),
-                  ),
-                );
+          // Page View
+          Expanded(
+            child: PageView(
+              controller: _pageController,
+              onPageChanged: (index) {
+                _tabController.animateTo(index);
               },
+              children: [
+                SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: 20.0),
+                      _buildTicketsSection(),
+                    ],
+                  ),
+                ),
+                SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: 20.0),
+                      // Subscription Plans Header
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              "Choose Your Plan",
+                              style: GoogleFonts.poppins(
+                                fontSize: 24.0,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.black87,
+                                letterSpacing: -0.5,
+                              ),
+                            ),
+                            const SizedBox(height: 8.0),
+                            Text(
+                              "Unlock premium features with our subscription plans",
+                              style: GoogleFonts.poppins(
+                                fontSize: 16.0,
+                                color: Colors.black54,
+                                height: 1.4,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 24.0),
+                      // Subscription Plans Stream Builder
+                      StreamBuilder<QuerySnapshot>(
+                        stream:
+                            FirebaseFirestore.instance
+                                .collection('subscription_plans')
+                                .snapshots(),
+                        builder: (context, snapshot) {
+                          if (snapshot.hasError) {
+                            return _buildErrorState(
+                              'Error loading subscription plans',
+                            );
+                          }
+                          if (snapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return _buildLoadingState();
+                          }
+                          final plans = snapshot.data?.docs ?? [];
+                          if (plans.isEmpty) {
+                            return _buildEmptyState(
+                              'No subscription plans available',
+                            );
+                          }
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 20.0,
+                            ),
+                            child: Column(
+                              children: List.generate(plans.length, (index) {
+                                final plan =
+                                    plans[index].data() as Map<String, dynamic>;
+                                return _buildSubscriptionCard(plan, index);
+                              }),
+                            ),
+                          );
+                        },
+                      ),
+                      const SizedBox(height: 20.0),
+                    ],
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(height: 20.0),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

@@ -512,13 +512,14 @@ class _BookTicketState extends State<BookTicket> {
                           ),
                         );
 
-                        // Navigate to home screen and clear the stack
+                        // Navigate to tickets screen while preserving home screen
                         Navigator.pushAndRemoveUntil(
                           context,
                           MaterialPageRoute(
                             builder: (context) => const SubscriptionScreen(),
                           ),
-                          (Route<dynamic> route) => false,
+                          // Keep home screen in stack
+                          (Route<dynamic> route) => route.isFirst,
                         );
                       }
                     } catch (e) {
